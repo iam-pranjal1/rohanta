@@ -574,17 +574,56 @@ async def update_payment(sponsorship_id: str, rtgs_reference: str = Form(...), c
 
 # Admin Routes
 @api_router.get("/admin/pending-students")
-async def get_pending_students(current_user: dict = Depends(verify_token)):
+async def get_pending_students(
+    current_user: dict = Depends(verify_token),
+    page: int = 1,
+    limit: int = 50,
+    search: str = None,
+    status: str = "pending"
+):
     if current_user['role'] != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Unauthorized")
     
+    # Build query
+    query = {}
+    if status == "pending":
+        query["verification_status"] = VerificationStatus.PENDING
+    elif status == "verified":
+        query["verification_status"] = VerificationStatus.VERIFIED
+    elif status == "all":
+        pass  # No filter
+    
+    # Add search filter
+    if search:
+        query["$or"] = [
+            {"full_name": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}},
+            {"school_name": {"$regex": search, "$options": "i"}}
+        ]
+    
+    # Get total count
+    total = await db.students.count_documents(query)
+    
+    # Calculate pagination
+    skip = (page - 1) * limit
+    total_pages = (total + limit - 1) // limit
+    
+    # Get paginated students
     students = await db.students.find(
-        {"verification_status": VerificationStatus.PENDING},
+        query,
         {"_id": 0, "password_hash": 0}
-    ).to_list(1000)
+    ).skip(skip).limit(limit).to_list(None)
     
     if not students:
-        return {"pending_students": []}
+        return {
+            "pending_students": [],
+            "pagination": {
+                "page": page,
+                "limit": limit,
+                "total": 0,
+                "total_pages": 0
+            }
+        }
     
     # Batch fetch all documents to avoid N+1 queries
     student_ids = [s["student_id"] for s in students]
@@ -609,7 +648,15 @@ async def get_pending_students(current_user: dict = Depends(verify_token)):
             "documents": docs_dict.get(student["student_id"], [])
         })
     
-    return {"pending_students": result}
+    return {
+        "pending_students": result,
+        "pagination": {
+            "page": page,
+            "limit": limit,
+            "total": total,
+            "total_pages": total_pages
+        }
+    }
 
 @api_router.put("/admin/verify-student/{student_id}")
 async def verify_student(student_id: str, approved: bool = Form(...), current_user: dict = Depends(verify_token)):
