@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Users, LogOut, Heart, TrendingUp, FileText, CheckCircle, Star, Info } from 'lucide-react';
+import { Building2, Users, LogOut, Heart, TrendingUp, FileText, CheckCircle, Star, Info, Filter } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -11,6 +11,9 @@ import { useToast } from '../hooks/use-toast';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import AnimatedCard from '../components/AnimatedCard';
+import SearchBar from '../components/SearchBar';
+import Pagination from '../components/Pagination';
+import ProgressTimeline from '../components/ProgressTimeline';
 
 const CompanyDashboard = () => {
   const [students, setStudents] = useState([]);
