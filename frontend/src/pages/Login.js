@@ -147,11 +147,17 @@ const Login = () => {
                   type="email"
                   placeholder="your.email@example.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (errors.email) setErrors({ ...errors, email: '' });
+                  }}
                   required
-                  className="mt-1"
+                  className={`mt-1 ${errors.email ? 'border-red-500' : ''}`}
                   data-testid="login-email"
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                )}
               </div>
 
               <div>
@@ -161,11 +167,17 @@ const Login = () => {
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errors.password) setErrors({ ...errors, password: '' });
+                  }}
                   required
-                  className="mt-1"
+                  className={`mt-1 ${errors.password ? 'border-red-500' : ''}`}
                   data-testid="login-password"
                 />
+                {errors.password && (
+                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                )}
               </div>
 
               <Button
