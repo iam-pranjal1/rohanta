@@ -217,6 +217,29 @@ const CompanyDashboard = () => {
                 <CardDescription>Browse verified students looking for sponsorship</CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Search and Filters */}
+                <div className="mb-6 space-y-4">
+                  <div className="flex gap-4">
+                    <SearchBar
+                      value={searchTerm}
+                      onChange={setSearchTerm}
+                      placeholder="Search by name, email, or school..."
+                      className="flex-1"
+                    />
+                    <select
+                      value={minPercentage}
+                      onChange={(e) => setMinPercentage(e.target.value)}
+                      className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-marigold"
+                    >
+                      <option value="">All Percentages</option>
+                      <option value="90">90% and above</option>
+                      <option value="80">80% and above</option>
+                      <option value="70">70% and above</option>
+                      <option value="60">60% and above</option>
+                    </select>
+                  </div>
+                </div>
+
                 {students.length === 0 ? (
                   <div className="text-center py-16">
                     <div className="w-24 h-24 bg-gradient-to-br from-amber-100 to-amber-200 rounded-full flex items-center justify-center mx-auto mb-6">
