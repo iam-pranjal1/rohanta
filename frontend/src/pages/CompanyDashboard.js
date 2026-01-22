@@ -200,9 +200,24 @@ const CompanyDashboard = () => {
               </CardHeader>
               <CardContent>
                 {students.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600">No students available for sponsorship at the moment</p>
+                  <div className="text-center py-16">
+                    <div className="w-24 h-24 bg-gradient-to-br from-amber-100 to-amber-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Users className="h-12 w-12 text-amber-600" />
+                    </div>
+                    <h3 className="text-xl font-heading font-bold text-indigo-950 mb-2">
+                      No Students Available Yet
+                    </h3>
+                    <p className="text-gray-600 max-w-md mx-auto mb-6">
+                      Students are currently being verified by our admin team. Once approved, they'll appear here for sponsorship.
+                    </p>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md mx-auto">
+                      <p className="text-sm text-amber-800 font-semibold mb-2">
+                        Get Notified
+                      </p>
+                      <p className="text-xs text-amber-700">
+                        We'll send you an email as soon as verified students become available for sponsorship.
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-2 gap-6">
