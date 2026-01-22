@@ -93,12 +93,15 @@ Build a website for raising Corporate Social Responsibility (CSR) funds in India
 
 ## Changelog
 
-### January 22, 2026 (Session 3) - Deployment Fixes
+### January 22, 2026 (Session 3) - Deployment Fixes & UI Improvements
 - **Deployment Blockers Resolved**
   - Removed unused AI/ML dependencies (google-generativeai, huggingface_hub, hf-xet)
   - Added `data-testid="login-submit-button"` to Login page submit button
   - Added `/api/health` health check endpoint
   - All deployment checks passed via deployment_agent
+- **UI Bug Fixes**
+  - Fixed DOB field in student registration - now uses proper calendar date picker with month/year dropdowns
+  - Fixed homepage header to show logged-in state (Dashboard & Logout buttons instead of Login & Get Started)
 
 ### January 22, 2026 (Session 2)
 - **Success Stories Feature**
