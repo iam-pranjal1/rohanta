@@ -103,35 +103,78 @@ const CompanyDashboard = () => {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-amber-100">
-            <CardHeader>
-              <CardTitle className="text-lg">Total Sponsored</CardTitle>
+          <Card className="border-amber-100 shadow-md hover:shadow-lg transition-all">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <div className="p-2 bg-emerald-100 rounded-full">
+                  <Heart className="h-5 w-5 text-emerald-600" />
+                </div>
+                Total Sponsored
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-heading font-bold text-marigold">
-                {sponsoredStudents.length}
+              <div className="flex items-center justify-between">
+                <div className="text-4xl font-heading font-bold text-emerald-600">
+                  {sponsoredStudents.length}
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-500">Students</p>
+                  <p className="text-xs text-emerald-600 font-semibold">Active</p>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-amber-100">
-            <CardHeader>
-              <CardTitle className="text-lg">Available Students</CardTitle>
+          <Card className="border-amber-100 shadow-md hover:shadow-lg transition-all">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <div className="p-2 bg-blue-100 rounded-full">
+                  <Users className="h-5 w-5 text-blue-600" />
+                </div>
+                Available Students
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-heading font-bold text-indigo-950">
-                {students.length}
+              <div className="flex items-center justify-between">
+                <div className="text-4xl font-heading font-bold text-blue-600">
+                  {students.length}
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-500">Students</p>
+                  <p className="text-xs text-blue-600 font-semibold">Verified</p>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-amber-100">
-            <CardHeader>
-              <CardTitle className="text-lg">Impact Score</CardTitle>
+          <Card className="border-amber-100 shadow-md hover:shadow-lg transition-all relative group">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <div className="p-2 bg-amber-100 rounded-full">
+                  <Star className="h-5 w-5 text-amber-600" />
+                </div>
+                Impact Score
+                <div className="relative">
+                  <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-indigo-950 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                    <p className="font-semibold mb-1">Impact Score Calculation:</p>
+                    <p>100 points per sponsored student. Higher score shows greater educational impact.</p>
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
+                      <div className="border-4 border-transparent border-t-indigo-950"></div>
+                    </div>
+                  </div>
+                </div>
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-heading font-bold text-emerald-600">
-                {sponsoredStudents.length * 100}
+              <div className="flex items-center justify-between">
+                <div className="text-4xl font-heading font-bold text-amber-600">
+                  {sponsoredStudents.length * 100}
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-500">Points</p>
+                  <p className="text-xs text-amber-600 font-semibold">Growing</p>
+                </div>
               </div>
             </CardContent>
           </Card>
