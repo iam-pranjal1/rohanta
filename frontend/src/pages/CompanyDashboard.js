@@ -179,7 +179,7 @@ const CompanyDashboard = () => {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         </div>
 
         <Tabs defaultValue="browse" className="space-y-6">
