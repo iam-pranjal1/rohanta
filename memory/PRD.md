@@ -155,11 +155,13 @@ Build a website for raising Corporate Social Responsibility (CSR) funds in India
 - Institute Selection flow
 - CSR Partners management
 - Tax & Compliance dashboard
+- Company Leaderboard on landing page
+- Deployment readiness (health check, test IDs, clean dependencies)
 
 ### P1 - Next Priority
+- [ ] Phase 2 Scalability - Searchable/paginated student list in Admin Dashboard
+- [ ] Progress Report Visibility Bug - Verify company can see admin-added reports
 - [ ] DigiLocker Integration for document verification
-- [ ] 80G Certificate PDF generation and download
-- [ ] Success Story admin management UI
 
 ### P2 - Future
 - [ ] PDF export for progress reports
