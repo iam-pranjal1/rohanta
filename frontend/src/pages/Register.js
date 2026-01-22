@@ -463,9 +463,12 @@ const Register = () => {
                       value={companyData.company_name}
                       onChange={handleCompanyChange}
                       required
-                      className="mt-1"
+                      className={`mt-1 ${errors.company_name ? 'border-red-500' : ''}`}
                       data-testid="company-name"
                     />
+                    {errors.company_name && (
+                      <p className="text-red-500 text-xs mt-1">{errors.company_name}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -477,8 +480,11 @@ const Register = () => {
                         value={companyData.contact_person}
                         onChange={handleCompanyChange}
                         required
-                        className="mt-1"
+                        className={`mt-1 ${errors.contact_person ? 'border-red-500' : ''}`}
                       />
+                      {errors.contact_person && (
+                        <p className="text-red-500 text-xs mt-1">{errors.contact_person}</p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
@@ -487,9 +493,13 @@ const Register = () => {
                         name="phone"
                         value={companyData.phone}
                         onChange={handleCompanyChange}
+                        placeholder="9876543210"
                         required
-                        className="mt-1"
+                        className={`mt-1 ${errors.phone ? 'border-red-500' : ''}`}
                       />
+                      {errors.phone && (
+                        <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+                      )}
                     </div>
                   </div>
 
@@ -503,10 +513,30 @@ const Register = () => {
                         value={companyData.email}
                         onChange={handleCompanyChange}
                         required
-                        className="mt-1"
+                        className={`mt-1 ${errors.email ? 'border-red-500' : ''}`}
                         data-testid="company-email"
                       />
+                      {errors.email && (
+                        <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                      )}
                     </div>
+                    <div>
+                      <Label htmlFor="industry">Industry</Label>
+                      <Input
+                        id="industry"
+                        name="industry"
+                        value={companyData.industry}
+                        onChange={handleCompanyChange}
+                        required
+                        className={`mt-1 ${errors.industry ? 'border-red-500' : ''}`}
+                      />
+                      {errors.industry && (
+                        <p className="text-red-500 text-xs mt-1">{errors.industry}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="password">Password</Label>
                       <Input
@@ -516,35 +546,45 @@ const Register = () => {
                         value={companyData.password}
                         onChange={handleCompanyChange}
                         required
-                        className="mt-1"
+                        className={`mt-1 ${errors.password ? 'border-red-500' : ''}`}
                         data-testid="company-password"
                       />
+                      {errors.password && (
+                        <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="confirm_password">Confirm Password</Label>
+                      <Input
+                        id="confirm_password"
+                        name="confirm_password"
+                        type="password"
+                        value={companyData.confirm_password}
+                        onChange={handleCompanyChange}
+                        required
+                        className={`mt-1 ${errors.confirm_password ? 'border-red-500' : ''}`}
+                        data-testid="company-confirm-password"
+                      />
+                      {errors.confirm_password && (
+                        <p className="text-red-500 text-xs mt-1">{errors.confirm_password}</p>
+                      )}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="industry">Industry</Label>
-                      <Input
-                        id="industry"
-                        name="industry"
-                        value={companyData.industry}
-                        onChange={handleCompanyChange}
-                        required
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="website">Website (Optional)</Label>
-                      <Input
-                        id="website"
-                        name="website"
-                        type="url"
-                        value={companyData.website}
-                        onChange={handleCompanyChange}
-                        className="mt-1"
-                      />
-                    </div>
+                  <div>
+                    <Label htmlFor="website">Website (Optional)</Label>
+                    <Input
+                      id="website"
+                      name="website"
+                      type="url"
+                      placeholder="https://yourcompany.com"
+                      value={companyData.website}
+                      onChange={handleCompanyChange}
+                      className={`mt-1 ${errors.website ? 'border-red-500' : ''}`}
+                    />
+                    {errors.website && (
+                      <p className="text-red-500 text-xs mt-1">{errors.website}</p>
+                    )}
                   </div>
                 </>
               )}
