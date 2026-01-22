@@ -11,6 +11,8 @@ import { Textarea } from '../components/ui/textarea';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/use-toast';
 import api from '../utils/api';
+import Avatar from '../components/Avatar';
+import AnimatedCard from '../components/AnimatedCard';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({});
