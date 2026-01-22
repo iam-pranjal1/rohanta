@@ -397,33 +397,8 @@ const CompanyDashboard = () => {
 
                             {/* Progress Reports */}
                             <div>
-                              <h4 className="font-semibold text-indigo-950 mb-3">Latest Progress</h4>
-                              {progress_reports.length === 0 ? (
-                                <p className="text-sm text-gray-600">No progress reports yet</p>
-                              ) : (
-                                <div className="space-y-3">
-                                  {progress_reports.slice(0, 2).map((report) => (
-                                    <div key={report.report_id} className="bg-amber-50 p-3 rounded-sm">
-                                      <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm font-semibold text-indigo-950">{report.report_month}</span>
-                                        <TrendingUp className="h-4 w-4 text-emerald-600" />
-                                      </div>
-                                      {report.attendance_percentage && (
-                                        <div className="mb-2">
-                                          <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                                            <span>Attendance</span>
-                                            <span>{report.attendance_percentage}%</span>
-                                          </div>
-                                          <Progress value={report.attendance_percentage} className="h-1" />
-                                        </div>
-                                      )}
-                                      {report.report_text && (
-                                        <p className="text-xs text-gray-600">{report.report_text.substring(0, 100)}...</p>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
+                              <h4 className="font-semibold text-indigo-950 mb-3">Progress Timeline</h4>
+                              <ProgressTimeline reports={progress_reports} />
                             </div>
                           </div>
                         </CardContent>
