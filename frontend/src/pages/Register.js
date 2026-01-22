@@ -325,14 +325,17 @@ const Register = () => {
                         id="date_of_birth"
                         name="date_of_birth"
                         type="date"
+                        placeholder="YYYY-MM-DD"
                         value={studentData.date_of_birth}
                         onChange={handleStudentChange}
                         required
+                        max={new Date().toISOString().split('T')[0]}
                         className={`mt-1 ${errors.date_of_birth ? 'border-red-500' : ''}`}
                       />
                       {errors.date_of_birth && (
                         <p className="text-red-500 text-xs mt-1">{errors.date_of_birth}</p>
                       )}
+                      <p className="text-xs text-gray-500 mt-1">Format: YYYY-MM-DD (e.g., 2005-05-15)</p>
                     </div>
                   </div>
 
