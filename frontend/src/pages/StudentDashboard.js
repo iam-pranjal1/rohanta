@@ -177,9 +177,9 @@ const StudentDashboard = () => {
                 {student?.verification_status === 'rejected' && 'Please reupload your documents'}
               </p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
-          <Card className="border-amber-100 shadow-md hover:shadow-lg transition-all" data-testid="sponsorship-status-card">
+          <AnimatedCard delay={200} className="border-amber-100 shadow-md hover:shadow-xl hover-lift" data-testid="sponsorship-status-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <div className="p-2 bg-purple-100 rounded-full">
