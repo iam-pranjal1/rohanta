@@ -43,6 +43,15 @@ const AdminDashboard = () => {
       
       setStats(statsRes.data);
       setPendingStudents(pendingRes.data.pending_students || []);
+      
+      // Fetch sponsored students for progress report dropdown
+      try {
+        const sponsoredRes = await api.get('/admin/sponsored-students');
+        setSponsoredStudents(sponsoredRes.data.sponsored_students || []);
+      } catch (err) {
+        // Endpoint might not exist yet, that's okay
+        setSponsoredStudents([]);
+      }
     } catch (error) {
       toast({
         variant: "destructive",
