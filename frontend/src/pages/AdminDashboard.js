@@ -377,6 +377,10 @@ const AdminDashboard = () => {
               <Heart className="h-4 w-4 mr-2" />
               Sponsored
             </TabsTrigger>
+            <TabsTrigger value="csr-partners" className="data-[state=active]:bg-indigo-950 data-[state=active]:text-white" data-testid="csr-partners-tab">
+              <Briefcase className="h-4 w-4 mr-2" />
+              CSR Partners
+            </TabsTrigger>
           </TabsList>
 
           {/* Verify Students Tab */}
