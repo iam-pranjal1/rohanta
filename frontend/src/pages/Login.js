@@ -15,12 +15,46 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const { login } = useAuth();
   const { toast } = useToast();
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      newErrors.email = 'Email is required';
+    } else if (!emailRegex.test(email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Password validation
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Validate form
+    if (!validateForm()) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fix the errors before continuing",
+      });
+      return;
+    }
+
     setLoading(true);
 
     const result = await login(email, password, userType);
@@ -42,7 +76,7 @@ const Login = () => {
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: result.error,
+        description: result.error || "Invalid credentials. Please check your email and password.",
       });
     }
     
