@@ -32,6 +32,10 @@ JWT_SECRET = os.environ['JWT_SECRET']  # Required environment variable
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_HOURS = 24
 
+# Resend Email Configuration
+resend.api_key = os.environ.get('RESEND_API_KEY', '')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
+
 security = HTTPBearer()
 
 # Create the main app
