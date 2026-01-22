@@ -245,6 +245,55 @@ class UpdateFinalResult(BaseModel):
     student_id: str
     final_result: FinalResult
 
+# ============= NEW MODELS FOR INSTITUTES & SUCCESS STORIES =============
+
+class InstituteStatus(str, Enum):
+    PENDING_SELECTION = "pending_selection"
+    SELECTED = "selected"
+    ENROLLED = "enrolled"
+
+# Institute Model
+class Institute(BaseModel):
+    institute_id: str = ""
+    name: str
+    location: str
+    coaching_types: List[str]  # ["IIT-JEE", "NEET"]
+    fee_2_years: float
+    rating: float
+    success_rate: float
+    features: List[str]
+    is_hostel_available: bool = True
+    
+# Success Story Model
+class SuccessStoryCreate(BaseModel):
+    student_id: str
+    title: str
+    story_text: str
+    exam_name: str
+    rank: int
+    college_name: str
+    branch: str
+    year: int
+    company_testimonial: Optional[str] = None
+
+# 80G Certificate Model
+class Certificate80G(BaseModel):
+    certificate_number: str
+    issue_date: str
+    amount: float
+    financial_year: str
+    pan_number: str
+
+# CSR Partnership Model
+class CSRPartnership(BaseModel):
+    partnership_status: str = "active"  # active, inactive, renewed
+    start_date: str
+    end_date: str
+    total_commitment: float
+    total_disbursed: float
+    admin_fee_percent: float = 10.0
+    partnership_tier: str = "Standard"  # Premium, Gold, Silver, Standard
+
 # Helper Functions
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
