@@ -259,19 +259,27 @@ const StudentDashboard = () => {
 
             <div className="grid md:grid-cols-3 gap-6">
               {/* Income Certificate */}
-              <div className="border-2 border-dashed border-gray-200 rounded-sm p-6 hover:border-marigold transition-all">
-                <FileText className="h-12 w-12 text-marigold mb-4" />
-                <h3 className="font-semibold text-indigo-950 mb-2">Income Certificate</h3>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-marigold hover:bg-amber-50/30 transition-all">
+                <div className="flex items-center gap-3 mb-4">
+                  <FileText className="h-10 w-10 text-marigold" />
+                  <div>
+                    <h3 className="font-semibold text-indigo-950">Income Certificate</h3>
+                    <p className="text-xs text-gray-500">PDF/JPG, Max 5MB</p>
+                  </div>
+                </div>
                 {incomeDoc.uploaded ? (
                   <div>
-                    <Badge className={`mb-3 ${
-                      incomeDoc.status === 'verified' ? 'bg-emerald-100 text-emerald-800' :
-                      incomeDoc.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                      'bg-amber-100 text-amber-800'
+                    <Badge className={`mb-3 px-3 py-1 ${
+                      incomeDoc.status === 'verified' ? 'bg-emerald-500 text-white' :
+                      incomeDoc.status === 'rejected' ? 'bg-red-500 text-white' :
+                      'bg-amber-400 text-indigo-950'
                     }`}>
                       {incomeDoc.status}
                     </Badge>
-                    <p className="text-sm text-gray-600">Uploaded successfully</p>
+                    <p className="text-sm text-gray-600 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-emerald-600" />
+                      Uploaded successfully
+                    </p>
                   </div>
                 ) : (
                   <div>
@@ -283,24 +291,33 @@ const StudentDashboard = () => {
                       className="mt-2"
                       data-testid="upload-income-cert"
                     />
+                    <p className="text-xs text-gray-500 mt-2">Upload your family income certificate</p>
                   </div>
                 )}
               </div>
 
               {/* 10th Certificate */}
-              <div className="border-2 border-dashed border-gray-200 rounded-sm p-6 hover:border-marigold transition-all">
-                <FileText className="h-12 w-12 text-marigold mb-4" />
-                <h3 className="font-semibold text-indigo-950 mb-2">10th Class Certificate</h3>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-marigold hover:bg-amber-50/30 transition-all">
+                <div className="flex items-center gap-3 mb-4">
+                  <FileText className="h-10 w-10 text-marigold" />
+                  <div>
+                    <h3 className="font-semibold text-indigo-950">10th Class Certificate</h3>
+                    <p className="text-xs text-gray-500">PDF/JPG, Max 5MB</p>
+                  </div>
+                </div>
                 {class10Doc.uploaded ? (
                   <div>
-                    <Badge className={`mb-3 ${
-                      class10Doc.status === 'verified' ? 'bg-emerald-100 text-emerald-800' :
-                      class10Doc.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                      'bg-amber-100 text-amber-800'
+                    <Badge className={`mb-3 px-3 py-1 ${
+                      class10Doc.status === 'verified' ? 'bg-emerald-500 text-white' :
+                      class10Doc.status === 'rejected' ? 'bg-red-500 text-white' :
+                      'bg-amber-400 text-indigo-950'
                     }`}>
                       {class10Doc.status}
                     </Badge>
-                    <p className="text-sm text-gray-600">Uploaded successfully</p>
+                    <p className="text-sm text-gray-600 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-emerald-600" />
+                      Uploaded successfully
+                    </p>
                   </div>
                 ) : (
                   <div>
@@ -312,24 +329,33 @@ const StudentDashboard = () => {
                       className="mt-2"
                       data-testid="upload-class10-cert"
                     />
+                    <p className="text-xs text-gray-500 mt-2">Upload your 10th grade marksheet</p>
                   </div>
                 )}
               </div>
 
               {/* Aadhar Card */}
-              <div className="border-2 border-dashed border-gray-200 rounded-sm p-6 hover:border-marigold transition-all">
-                <FileText className="h-12 w-12 text-marigold mb-4" />
-                <h3 className="font-semibold text-indigo-950 mb-2">Aadhar Card</h3>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-marigold hover:bg-amber-50/30 transition-all">
+                <div className="flex items-center gap-3 mb-4">
+                  <FileText className="h-10 w-10 text-marigold" />
+                  <div>
+                    <h3 className="font-semibold text-indigo-950">Aadhar Card</h3>
+                    <p className="text-xs text-gray-500">PDF/JPG, Max 5MB</p>
+                  </div>
+                </div>
                 {aadharDoc.uploaded ? (
                   <div>
-                    <Badge className={`mb-3 ${
-                      aadharDoc.status === 'verified' ? 'bg-emerald-100 text-emerald-800' :
-                      aadharDoc.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                      'bg-amber-100 text-amber-800'
+                    <Badge className={`mb-3 px-3 py-1 ${
+                      aadharDoc.status === 'verified' ? 'bg-emerald-500 text-white' :
+                      aadharDoc.status === 'rejected' ? 'bg-red-500 text-white' :
+                      'bg-amber-400 text-indigo-950'
                     }`}>
                       {aadharDoc.status}
                     </Badge>
-                    <p className="text-sm text-gray-600">Uploaded successfully</p>
+                    <p className="text-sm text-gray-600 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-emerald-600" />
+                      Uploaded successfully
+                    </p>
                   </div>
                 ) : (
                   <div>
@@ -341,6 +367,7 @@ const StudentDashboard = () => {
                       className="mt-2"
                       data-testid="upload-aadhar"
                     />
+                    <p className="text-xs text-gray-500 mt-2">Upload your Aadhar card (both sides)</p>
                   </div>
                 )}
               </div>
