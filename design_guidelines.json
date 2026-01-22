@@ -1,0 +1,179 @@
+{
+  "design_system": {
+    "identity": "E1: The Anti-AI Designer",
+    "philosophy": {
+      "core_principles": [
+        "Fusion over Imitation: Mix Academic Heritage with Modern SaaS.",
+        "Emotion First: Hope (Students) meets Trust (CSR).",
+        "Content is King: Every pixel must serve the narrative of 'Impact'.",
+        "Zoom In: Use close-ups of students to create empathy.",
+        "Negative Space: Value empty areas for breathing room."
+      ],
+      "anti_patterns": [
+        "No generic 'SaaS Blue' as primary color.",
+        "No 'Inter' for headings.",
+        "No center-aligned text blocks longer than 3 lines.",
+        "No generic 'handshake' stock photos."
+      ]
+    },
+    "typography": {
+      "font_family": {
+        "headings": "Playfair Display, serif",
+        "body": "Manrope, sans-serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "usage_rules": [
+        "Headings (H1-H3): Playfair Display. Bold, tight tracking (-0.02em).",
+        "Body Text: Manrope. Relaxed leading (1.6).",
+        "Data/Numbers: Manrope (Tabular nums).",
+        "Overlines/Labels: JetBrains Mono. Uppercase, wide tracking (0.1em)."
+      ],
+      "installation": "Import from Google Fonts: @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700;900&display=swap');"
+    },
+    "colors": {
+      "palette_name": "The Golden Path",
+      "theme": "light",
+      "primary": {
+        "name": "Marigold",
+        "hex": "#F59E0B",
+        "tailwind": "amber-500",
+        "usage": "Primary CTAs, Highlights, 'Hope' indicators."
+      },
+      "secondary": {
+        "name": "Deep Indigo",
+        "hex": "#1E1B4B",
+        "tailwind": "indigo-950",
+        "usage": "Headings, Footer, Corporate Trust elements."
+      },
+      "accent": {
+        "name": "Growth Green",
+        "hex": "#059669",
+        "tailwind": "emerald-600",
+        "usage": "Success states, Financial data, Progress bars."
+      },
+      "background": {
+        "default": "#FFFBEB",
+        "paper": "#FFFFFF",
+        "subtle": "#FEF3C7"
+      },
+      "text": {
+        "primary": "#1E1B4B",
+        "secondary": "#4B5563",
+        "muted": "#9CA3AF"
+      },
+      "gradients": {
+        "hero": "bg-gradient-to-br from-amber-50 via-white to-amber-100",
+        "card_hover": "hover:bg-gradient-to-br hover:from-white hover:to-amber-50"
+      }
+    },
+    "spacing_layout": {
+      "scale": "Tailwind Default",
+      "container_padding": "px-6 md:px-12 lg:px-24",
+      "section_spacing": "py-20 md:py-32",
+      "grid_system": {
+        "marketing": "Mode A: Tetris Grid (Asymmetric, Artful).",
+        "dashboard": "Mode B: High Density Grid (Dense, Data-focused)."
+      },
+      "border_radius": {
+        "default": "rounded-sm",
+        "buttons": "rounded-full",
+        "cards": "rounded-sm"
+      }
+    },
+    "components": {
+      "buttons": {
+        "primary": "bg-amber-500 text-indigo-950 hover:bg-amber-400 font-bold rounded-full px-8 py-3 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1",
+        "secondary": "border-2 border-indigo-950 text-indigo-950 hover:bg-indigo-950 hover:text-white font-bold rounded-full px-8 py-3 transition-all",
+        "ghost": "text-indigo-950 hover:bg-amber-100 rounded-full px-6 py-2"
+      },
+      "cards": {
+        "marketing": "bg-white border border-amber-100 shadow-sm hover:shadow-md transition-all p-8",
+        "dashboard": "bg-white border border-gray-200 shadow-none p-6"
+      },
+      "inputs": {
+        "default": "bg-white border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 rounded-sm"
+      }
+    },
+    "visual_enhancers": {
+      "textures": "Use subtle grain overlay on backgrounds to reduce digital flatness.",
+      "shadows": "Soft, warm shadows: shadow-[0_8px_30px_rgb(245,158,11,0.12)]",
+      "decorations": "Use abstract geometric shapes in Amber/Indigo to guide the eye."
+    },
+    "motion": {
+      "transitions": "transition-all duration-300 ease-out",
+      "hover_effects": "Lift up (-4px) on hover for cards.",
+      "loading": "Skeleton loaders with shimmering amber gradient."
+    },
+    "accessibility": {
+      "contrast": "Ensure text is always legible. Use Indigo-950 on Amber-500, not White.",
+      "focus_states": "Visible focus rings in Amber-500.",
+      "aria": "All interactive elements must have aria-labels."
+    }
+  },
+  "assets": {
+    "images": {
+      "students": [
+        {
+          "url": "https://images.unsplash.com/photo-1686624386665-4cd01b96d0f6",
+          "alt": "Students writing notes in classroom",
+          "usage": "Hero Section / Student Dashboard"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1698993081947-8a3654303904",
+          "alt": "Smiling student portrait",
+          "usage": "Success Stories / Profile Card"
+        }
+      ],
+      "corporate": [
+        {
+          "url": "https://images.pexels.com/photos/7580644/pexels-photo-7580644.jpeg",
+          "alt": "Corporate meeting",
+          "usage": "CSR Landing / Company Dashboard"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1750768145390-f0ad18d3e65b",
+          "alt": "Modern office space",
+          "usage": "Company Registration"
+        }
+      ],
+      "context": [
+        {
+          "url": "https://images.unsplash.com/photo-1624903715293-afe920c6adad",
+          "alt": "Rural school building",
+          "usage": "Impact Section / Background"
+        }
+      ]
+    },
+    "icons": "Use 'lucide-react'. Style: Stroke width 1.5px, Indigo-950 color."
+  },
+  "instructions_to_main_agent": {
+    "general": "You are building a platform that bridges the gap between underprivileged talent and corporate resources. The design must feel 'Expensive' yet 'Accessible'. Avoid the 'Charity' look (sad, poor). Go for the 'Opportunity' look (bright, ambitious).",
+    "pages": {
+      "landing": "Use the 'Tetris Grid' layout. Mix large student portraits with bold typography stats. Use the Marigold color for CTAs.",
+      "student_dashboard": "Mobile-first. Big buttons. Clear progress bars. Use 'Gamification' elements (badges, streaks).",
+      "company_dashboard": "Data-dense. Use tables with clear headers. Use the 'Deep Indigo' color for the sidebar.",
+      "admin_panel": "Functional. High contrast. No distractions."
+    },
+    "implementation_steps": [
+      "1. Install fonts and configure Tailwind theme.",
+      "2. Create the 'Layout' components (Navbar, Footer, Sidebar).",
+      "3. Build the 'UI Kit' (Buttons, Cards, Inputs) based on the design system.",
+      "4. Implement the Landing Page using the 'Tetris Grid'.",
+      "5. Build the Authentication flows (Student/Company).",
+      "6. Develop the Dashboards (Student/Company/Admin)."
+    ]
+  },
+  "universal_guidelines": {
+    "do_not": [
+      "Do not use 'Inter' for headings.",
+      "Do not use generic blue (#3B82F6) as primary.",
+      "Do not make the design look like a Bootstrap template."
+    ],
+    "do": [
+      "Use 'Playfair Display' for all H1-H3.",
+      "Use 'Manrope' for body text.",
+      "Use the 'Marigold' (#F59E0B) color for primary actions.",
+      "Ensure all images have 'object-cover' and proper aspect ratios."
+    ]
+  }
+}
