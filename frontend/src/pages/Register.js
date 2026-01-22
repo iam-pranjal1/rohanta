@@ -324,21 +324,45 @@ const Register = () => {
                     </div>
                     <div>
                       <Label htmlFor="date_of_birth">Date of Birth</Label>
-                      <Input
-                        id="date_of_birth"
-                        name="date_of_birth"
-                        type="date"
-                        placeholder="YYYY-MM-DD"
-                        value={studentData.date_of_birth}
-                        onChange={handleStudentChange}
-                        required
-                        max={new Date().toISOString().split('T')[0]}
-                        className={`mt-1 ${errors.date_of_birth ? 'border-red-500' : ''}`}
-                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={`w-full mt-1 justify-start text-left font-normal ${
+                              !studentData.date_of_birth ? 'text-muted-foreground' : ''
+                            } ${errors.date_of_birth ? 'border-red-500' : ''}`}
+                            data-testid="dob-picker"
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {studentData.date_of_birth
+                              ? format(new Date(studentData.date_of_birth), 'PPP')
+                              : 'Select your date of birth'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 bg-white" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={studentData.date_of_birth ? new Date(studentData.date_of_birth) : undefined}
+                            onSelect={(date) => {
+                              if (date) {
+                                const formatted = format(date, 'yyyy-MM-dd');
+                                setStudentData({ ...studentData, date_of_birth: formatted });
+                                if (errors.date_of_birth) {
+                                  setErrors({ ...errors, date_of_birth: '' });
+                                }
+                              }
+                            }}
+                            disabled={(date) => date > new Date() || date < new Date('1999-01-01')}
+                            initialFocus
+                            captionLayout="dropdown-buttons"
+                            fromYear={1999}
+                            toYear={new Date().getFullYear()}
+                          />
+                        </PopoverContent>
+                      </Popover>
                       {errors.date_of_birth && (
                         <p className="text-red-500 text-xs mt-1">{errors.date_of_birth}</p>
                       )}
-                      <p className="text-xs text-gray-500 mt-1">Format: YYYY-MM-DD (e.g., 2005-05-15)</p>
                     </div>
                   </div>
 
