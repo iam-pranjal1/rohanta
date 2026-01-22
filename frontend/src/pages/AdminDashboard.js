@@ -226,7 +226,7 @@ const AdminDashboard = () => {
               </div>
               <p className="text-xs text-gray-500 mt-1">Active</p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         </div>
 
         <Tabs defaultValue="verify" className="space-y-6">
