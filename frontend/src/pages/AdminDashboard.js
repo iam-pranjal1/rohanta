@@ -17,6 +17,7 @@ import AnimatedCard from '../components/AnimatedCard';
 const AdminDashboard = () => {
   const [stats, setStats] = useState({});
   const [pendingStudents, setPendingStudents] = useState([]);
+  const [sponsoredStudents, setSponsoredStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [reportData, setReportData] = useState({
