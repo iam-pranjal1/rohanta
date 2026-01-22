@@ -45,6 +45,10 @@ const Register = () => {
 
   // Validation errors
   const [errors, setErrors] = useState({});
+  
+  // Password visibility toggles
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleStudentChange = (e) => {
     const { name, value } = e.target;
