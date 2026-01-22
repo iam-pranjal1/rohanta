@@ -93,6 +93,13 @@ Build a website for raising Corporate Social Responsibility (CSR) funds in India
 
 ## Changelog
 
+### January 22, 2026 (Session 3) - Deployment Fixes
+- **Deployment Blockers Resolved**
+  - Removed unused AI/ML dependencies (google-generativeai, huggingface_hub, hf-xet)
+  - Added `data-testid="login-submit-button"` to Login page submit button
+  - Added `/api/health` health check endpoint
+  - All deployment checks passed via deployment_agent
+
 ### January 22, 2026 (Session 2)
 - **Success Stories Feature**
   - Created SuccessStories component with beautiful dark theme design
