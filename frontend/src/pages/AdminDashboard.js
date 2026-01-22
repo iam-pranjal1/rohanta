@@ -192,9 +192,9 @@ const AdminDashboard = () => {
               </div>
               <p className="text-xs text-gray-500 mt-1">Approved</p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
-          <Card className="bg-white shadow-md hover:shadow-lg transition-all">
+          <AnimatedCard delay={300} className="bg-white shadow-md hover:shadow-xl hover-lift">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <div className="p-2 bg-amber-100 rounded-full">
