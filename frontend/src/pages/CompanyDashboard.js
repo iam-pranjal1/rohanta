@@ -305,12 +305,15 @@ const CompanyDashboard = () => {
                 ) : (
                   <div className="space-y-6">
                     {sponsoredStudents.map(({ student, sponsorship, progress_reports }) => (
-                      <Card key={student.student_id} className="border-amber-100" data-testid={`sponsored-card-${student.student_id}`}>
+                      <AnimatedCard key={student.student_id} className="border-amber-100 hover:shadow-xl hover-lift" data-testid={`sponsored-card-${student.student_id}`}>
                         <CardHeader>
                           <div className="flex items-center justify-between">
-                            <div>
-                              <CardTitle className="text-xl">{student.full_name}</CardTitle>
-                              <CardDescription>{student.school_name}</CardDescription>
+                            <div className="flex items-center gap-3">
+                              <Avatar name={student.full_name} size="lg" />
+                              <div>
+                                <CardTitle className="text-xl">{student.full_name}</CardTitle>
+                                <CardDescription>{student.school_name}</CardDescription>
+                              </div>
                             </div>
                             <Badge className="bg-emerald-100 text-emerald-800">
                               <CheckCircle className="h-4 w-4 mr-1" />
