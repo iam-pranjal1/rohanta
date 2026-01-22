@@ -307,9 +307,12 @@ const Register = () => {
                         value={studentData.full_name}
                         onChange={handleStudentChange}
                         required
-                        className="mt-1"
+                        className={`mt-1 ${errors.full_name ? 'border-red-500' : ''}`}
                         data-testid="student-name"
                       />
+                      {errors.full_name && (
+                        <p className="text-red-500 text-xs mt-1">{errors.full_name}</p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="date_of_birth">Date of Birth</Label>
@@ -320,8 +323,11 @@ const Register = () => {
                         value={studentData.date_of_birth}
                         onChange={handleStudentChange}
                         required
-                        className="mt-1"
+                        className={`mt-1 ${errors.date_of_birth ? 'border-red-500' : ''}`}
                       />
+                      {errors.date_of_birth && (
+                        <p className="text-red-500 text-xs mt-1">{errors.date_of_birth}</p>
+                      )}
                     </div>
                   </div>
 
@@ -335,9 +341,12 @@ const Register = () => {
                         value={studentData.email}
                         onChange={handleStudentChange}
                         required
-                        className="mt-1"
+                        className={`mt-1 ${errors.email ? 'border-red-500' : ''}`}
                         data-testid="student-email"
                       />
+                      {errors.email && (
+                        <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
@@ -346,24 +355,49 @@ const Register = () => {
                         name="phone"
                         value={studentData.phone}
                         onChange={handleStudentChange}
+                        placeholder="9876543210"
                         required
-                        className="mt-1"
+                        className={`mt-1 ${errors.phone ? 'border-red-500' : ''}`}
                       />
+                      {errors.phone && (
+                        <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+                      )}
                     </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      value={studentData.password}
-                      onChange={handleStudentChange}
-                      required
-                      className="mt-1"
-                      data-testid="student-password"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="password">Password</Label>
+                      <Input
+                        id="password"
+                        name="password"
+                        type="password"
+                        value={studentData.password}
+                        onChange={handleStudentChange}
+                        required
+                        className={`mt-1 ${errors.password ? 'border-red-500' : ''}`}
+                        data-testid="student-password"
+                      />
+                      {errors.password && (
+                        <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="confirm_password">Confirm Password</Label>
+                      <Input
+                        id="confirm_password"
+                        name="confirm_password"
+                        type="password"
+                        value={studentData.confirm_password}
+                        onChange={handleStudentChange}
+                        required
+                        className={`mt-1 ${errors.confirm_password ? 'border-red-500' : ''}`}
+                        data-testid="student-confirm-password"
+                      />
+                      {errors.confirm_password && (
+                        <p className="text-red-500 text-xs mt-1">{errors.confirm_password}</p>
+                      )}
+                    </div>
                   </div>
 
                   <div>
@@ -374,8 +408,11 @@ const Register = () => {
                       value={studentData.school_name}
                       onChange={handleStudentChange}
                       required
-                      className="mt-1"
+                      className={`mt-1 ${errors.school_name ? 'border-red-500' : ''}`}
                     />
+                    {errors.school_name && (
+                      <p className="text-red-500 text-xs mt-1">{errors.school_name}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -390,9 +427,13 @@ const Register = () => {
                         max="100"
                         value={studentData.class_10_percentage}
                         onChange={handleStudentChange}
+                        placeholder="85.5"
                         required
-                        className="mt-1"
+                        className={`mt-1 ${errors.class_10_percentage ? 'border-red-500' : ''}`}
                       />
+                      {errors.class_10_percentage && (
+                        <p className="text-red-500 text-xs mt-1">{errors.class_10_percentage}</p>
+                      )}
                     </div>
                   </div>
 
@@ -403,9 +444,13 @@ const Register = () => {
                       name="address"
                       value={studentData.address}
                       onChange={handleStudentChange}
+                      placeholder="Full address with village/city and district"
                       required
-                      className="mt-1"
+                      className={`mt-1 ${errors.address ? 'border-red-500' : ''}`}
                     />
+                    {errors.address && (
+                      <p className="text-red-500 text-xs mt-1">{errors.address}</p>
+                    )}
                   </div>
                 </>
               ) : (
