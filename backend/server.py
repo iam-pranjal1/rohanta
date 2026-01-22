@@ -15,6 +15,9 @@ import jwt
 import bcrypt
 import base64
 from enum import Enum
+import resend
+import asyncio
+import secrets
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
