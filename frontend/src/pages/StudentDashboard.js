@@ -233,11 +233,11 @@ const StudentDashboard = () => {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         </div>
 
         {/* Document Upload Section */}
-        <Card className="mb-8 border-amber-100">
+        <AnimatedCard delay={400} className="mb-8 border-amber-100 shadow-md">
           <CardHeader>
             <CardTitle className="font-heading text-2xl text-indigo-950">Document Upload</CardTitle>
             <CardDescription>Upload your documents for verification</CardDescription>
