@@ -19,6 +19,10 @@ const CompanyDashboard = () => {
   const [students, setStudents] = useState([]);
   const [sponsoredStudents, setSponsoredStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [minPercentage, setMinPercentage] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({});
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
