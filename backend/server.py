@@ -482,15 +482,41 @@ async def get_sponsored_students(current_user: dict = Depends(verify_token)):
     # Get all sponsorships by this company
     sponsorships = await db.sponsorships.find({"company_id": current_user['user_id']}, {"_id": 0}).to_list(1000)
     
+    if not sponsorships:
+        return {"sponsored_students": []}
+    
+    # Batch fetch all students and reports to avoid N+1 queries
+    student_ids = [s["student_id"] for s in sponsorships]
+    
+    # Single query to get all students
+    students_list = await db.students.find(
+        {"student_id": {"$in": student_ids}}, 
+        {"_id": 0, "password_hash": 0}
+    ).to_list(None)
+    students_dict = {s["student_id"]: s for s in students_list}
+    
+    # Single query to get all progress reports
+    all_reports = await db.progress_reports.find(
+        {"student_id": {"$in": student_ids}}, 
+        {"_id": 0}
+    ).to_list(None)
+    
+    # Group reports by student_id
+    reports_dict = {}
+    for report in all_reports:
+        sid = report["student_id"]
+        if sid not in reports_dict:
+            reports_dict[sid] = []
+        reports_dict[sid].append(report)
+    
+    # Build result
     result = []
     for sponsorship in sponsorships:
-        student = await db.students.find_one({"student_id": sponsorship["student_id"]}, {"_id": 0, "password_hash": 0})
-        reports = await db.progress_reports.find({"student_id": sponsorship["student_id"]}, {"_id": 0}).to_list(100)
-        
+        sid = sponsorship["student_id"]
         result.append({
             "sponsorship": sponsorship,
-            "student": student,
-            "progress_reports": reports
+            "student": students_dict.get(sid),
+            "progress_reports": reports_dict.get(sid, [])
         })
     
     return {"sponsored_students": result}
