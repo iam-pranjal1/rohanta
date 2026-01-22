@@ -11,6 +11,8 @@ import { useAuth } from '../contexts/AuthContext';
 const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
 
 const Landing = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     total_students: 0,
     sponsored_students: 0,
@@ -30,6 +32,21 @@ const Landing = () => {
     }
   };
 
+  const getDashboardLink = () => {
+    if (!user) return '/';
+    switch (user.role) {
+      case 'student': return '/student/dashboard';
+      case 'company': return '/company/dashboard';
+      case 'admin': return '/admin/dashboard';
+      default: return '/';
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen">
       {/* Navbar */}
@@ -41,16 +58,37 @@ const Landing = () => {
               <span className="font-heading text-2xl font-bold text-indigo-950">EduUplift</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Link to="/login">
-                <Button variant="ghost" className="text-indigo-950 hover:bg-amber-100 rounded-full">
-                  Login
-                </Button>
-              </Link>
-              <Link to="/register">
-                <Button className="bg-marigold text-indigo-950 hover:bg-amber-400 font-bold rounded-full px-8 py-3 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
-                  Get Started
-                </Button>
-              </Link>
+              {user ? (
+                <>
+                  <Link to={getDashboardLink()}>
+                    <Button variant="ghost" className="text-indigo-950 hover:bg-amber-100 rounded-full" data-testid="dashboard-btn">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <Button 
+                    onClick={handleLogout}
+                    className="bg-marigold text-indigo-950 hover:bg-amber-400 font-bold rounded-full px-6 py-2 shadow-lg hover:shadow-xl transition-all"
+                    data-testid="logout-btn"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login">
+                    <Button variant="ghost" className="text-indigo-950 hover:bg-amber-100 rounded-full" data-testid="login-btn">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link to="/register">
+                    <Button className="bg-marigold text-indigo-950 hover:bg-amber-400 font-bold rounded-full px-8 py-3 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1" data-testid="get-started-btn">
+                      Get Started
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
