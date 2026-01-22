@@ -450,6 +450,11 @@ const CompanyDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Tax & Compliance Tab */}
+          <TabsContent value="tax">
+            <TaxCompliance />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
