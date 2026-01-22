@@ -1195,6 +1195,291 @@ async def bulk_import_progress_reports(
         "errors": errors[:10]  # Return first 10 errors
     }
 
+# ============= INSTITUTE ROUTES =============
+
+@api_router.get("/institutes")
+async def get_institutes(coaching_type: str = None):
+    """Get list of available coaching institutes"""
+    query = {}
+    if coaching_type:
+        query["coaching_types"] = coaching_type
+    
+    institutes = await db.institutes.find(query, {"_id": 0}).to_list(100)
+    return {"institutes": institutes}
+
+@api_router.post("/admin/institutes")
+async def add_institute(institute: Institute, current_user: dict = Depends(verify_token)):
+    """Admin adds a new coaching institute"""
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    institute_doc = institute.model_dump()
+    institute_doc["institute_id"] = str(uuid.uuid4())
+    institute_doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.institutes.insert_one(institute_doc)
+    return {"success": True, "institute_id": institute_doc["institute_id"]}
+
+@api_router.put("/student/select-institute/{institute_id}")
+async def select_institute(institute_id: str, current_user: dict = Depends(verify_token)):
+    """Student selects their preferred coaching institute after being sponsored"""
+    if current_user['role'] != UserRole.STUDENT:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    # Verify student is sponsored
+    student = await db.students.find_one({"student_id": current_user['user_id']})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    if not student.get("is_sponsored"):
+        raise HTTPException(status_code=400, detail="You must be sponsored to select an institute")
+    
+    # Get institute details
+    institute = await db.institutes.find_one({"institute_id": institute_id}, {"_id": 0})
+    if not institute:
+        raise HTTPException(status_code=404, detail="Institute not found")
+    
+    # Update student with selected institute
+    await db.students.update_one(
+        {"student_id": current_user['user_id']},
+        {"$set": {
+            "selected_institute": institute,
+            "institute_status": InstituteStatus.SELECTED,
+            "institute_selected_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"success": True, "message": "Institute selected successfully"}
+
+# ============= SUCCESS STORIES ROUTES =============
+
+@api_router.get("/public/success-stories")
+async def get_success_stories(limit: int = 10):
+    """Get published success stories"""
+    stories = await db.success_stories.find(
+        {"is_published": True},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(None)
+    
+    return {"success_stories": stories}
+
+@api_router.post("/admin/success-stories")
+async def create_success_story(story: SuccessStoryCreate, current_user: dict = Depends(verify_token)):
+    """Admin creates a success story"""
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    # Get student details
+    student = await db.students.find_one({"student_id": story.student_id}, {"_id": 0, "password_hash": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Get sponsorship and company details
+    sponsorship = await db.sponsorships.find_one({"student_id": story.student_id}, {"_id": 0})
+    company_name = None
+    if sponsorship:
+        company = await db.companies.find_one({"company_id": sponsorship["company_id"]}, {"_id": 0, "company_name": 1})
+        company_name = company.get("company_name") if company else None
+    
+    story_doc = {
+        "story_id": str(uuid.uuid4()),
+        "student_id": story.student_id,
+        "student_name": student.get("full_name"),
+        "student_school": student.get("school_name"),
+        "title": story.title,
+        "story_text": story.story_text,
+        "exam_name": story.exam_name,
+        "rank": story.rank,
+        "college_name": story.college_name,
+        "branch": story.branch,
+        "year": story.year,
+        "company_name": company_name,
+        "company_testimonial": story.company_testimonial,
+        "coaching_details": student.get("coaching_details"),
+        "is_published": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.success_stories.insert_one(story_doc)
+    return {"success": True, "story_id": story_doc["story_id"]}
+
+@api_router.delete("/admin/success-stories/{story_id}")
+async def delete_success_story(story_id: str, current_user: dict = Depends(verify_token)):
+    """Admin deletes a success story"""
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    result = await db.success_stories.delete_one({"story_id": story_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Story not found")
+    
+    return {"success": True}
+
+# ============= CSR PARTNERSHIP ROUTES =============
+
+@api_router.get("/admin/csr-partners")
+async def get_csr_partners(current_user: dict = Depends(verify_token)):
+    """Admin gets all CSR partners with their metrics"""
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    companies = await db.companies.find({}, {"_id": 0, "password_hash": 0}).to_list(None)
+    
+    result = []
+    for company in companies:
+        company_id = company["company_id"]
+        
+        # Get sponsorship count and funded amount
+        sponsorships = await db.sponsorships.find({"company_id": company_id}, {"_id": 0}).to_list(None)
+        
+        students_sponsored = len(sponsorships)
+        student_ids = [s["student_id"] for s in sponsorships]
+        
+        # Calculate total funds from sponsored students
+        total_funds = 0
+        funds_utilized = 0
+        if student_ids:
+            students = await db.students.find(
+                {"student_id": {"$in": student_ids}},
+                {"_id": 0, "funding_details": 1, "exam_performance": 1}
+            ).to_list(None)
+            
+            for s in students:
+                if s.get("funding_details"):
+                    total_funds += s["funding_details"].get("total_amount_allocated", 0)
+                    funds_utilized += s["funding_details"].get("amount_utilized", 0)
+        
+        # Get certificates
+        certificates = await db.certificates_80g.find(
+            {"company_id": company_id},
+            {"_id": 0}
+        ).sort("issue_date", -1).to_list(10)
+        
+        # Get partnership details
+        partnership = await db.csr_partnerships.find_one({"company_id": company_id}, {"_id": 0})
+        
+        result.append({
+            "company": company,
+            "students_sponsored": students_sponsored,
+            "total_funds_committed": total_funds,
+            "funds_utilized": funds_utilized,
+            "certificates_80g": certificates,
+            "partnership": partnership,
+            "impact_score": students_sponsored * 100 + int(funds_utilized / 1000)
+        })
+    
+    # Sort by impact score
+    result.sort(key=lambda x: x["impact_score"], reverse=True)
+    
+    return {"csr_partners": result}
+
+@api_router.post("/admin/csr-partnership/{company_id}")
+async def update_csr_partnership(
+    company_id: str,
+    partnership: CSRPartnership,
+    current_user: dict = Depends(verify_token)
+):
+    """Admin updates CSR partnership details"""
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    partnership_doc = partnership.model_dump()
+    partnership_doc["company_id"] = company_id
+    partnership_doc["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.csr_partnerships.update_one(
+        {"company_id": company_id},
+        {"$set": partnership_doc},
+        upsert=True
+    )
+    
+    return {"success": True}
+
+@api_router.post("/admin/80g-certificate/{company_id}")
+async def issue_80g_certificate(
+    company_id: str,
+    certificate: Certificate80G,
+    current_user: dict = Depends(verify_token)
+):
+    """Admin issues an 80G certificate"""
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    company = await db.companies.find_one({"company_id": company_id})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    cert_doc = certificate.model_dump()
+    cert_doc["certificate_id"] = str(uuid.uuid4())
+    cert_doc["company_id"] = company_id
+    cert_doc["company_name"] = company.get("company_name")
+    cert_doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.certificates_80g.insert_one(cert_doc)
+    
+    return {"success": True, "certificate_id": cert_doc["certificate_id"]}
+
+# ============= COMPANY TAX/COMPLIANCE ROUTES =============
+
+@api_router.get("/company/tax-compliance")
+async def get_tax_compliance(current_user: dict = Depends(verify_token)):
+    """Get tax compliance information for company"""
+    if current_user['role'] != UserRole.COMPANY:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    company_id = current_user['user_id']
+    
+    # Get company details
+    company = await db.companies.find_one({"company_id": company_id}, {"_id": 0, "password_hash": 0})
+    
+    # Get sponsorships
+    sponsorships = await db.sponsorships.find({"company_id": company_id}, {"_id": 0}).to_list(None)
+    student_ids = [s["student_id"] for s in sponsorships]
+    
+    # Calculate funding totals
+    total_committed = 0
+    total_utilized = 0
+    if student_ids:
+        students = await db.students.find(
+            {"student_id": {"$in": student_ids}},
+            {"_id": 0, "funding_details": 1}
+        ).to_list(None)
+        
+        for s in students:
+            if s.get("funding_details"):
+                total_committed += s["funding_details"].get("total_amount_allocated", 0)
+                total_utilized += s["funding_details"].get("amount_utilized", 0)
+    
+    # Get 80G certificates
+    certificates = await db.certificates_80g.find(
+        {"company_id": company_id},
+        {"_id": 0}
+    ).sort("issue_date", -1).to_list(100)
+    
+    # Get partnership details
+    partnership = await db.csr_partnerships.find_one({"company_id": company_id}, {"_id": 0})
+    
+    # Calculate admin fee (typically 10%)
+    admin_fee_percent = partnership.get("admin_fee_percent", 10.0) if partnership else 10.0
+    admin_fee = total_committed * (admin_fee_percent / 100)
+    
+    # Tax benefit calculation (50% of donation under 80G)
+    tax_benefit = total_committed * 0.5
+    
+    return {
+        "financial_summary": {
+            "total_commitment": total_committed,
+            "disbursed_to_ngo": total_utilized,
+            "admin_fee": admin_fee,
+            "student_utilization": total_utilized,
+            "balance_remaining": total_committed - total_utilized,
+            "tax_benefit_80g": tax_benefit
+        },
+        "certificates_80g": certificates,
+        "partnership": partnership,
+        "students_sponsored": len(student_ids)
+    }
+
 # ============= PUBLIC ROUTES =============
 
 @api_router.get("/public/stats")
