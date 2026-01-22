@@ -230,6 +230,10 @@ const CompanyDashboard = () => {
               <Heart className="h-4 w-4 mr-2" />
               Sponsored ({sponsoredStudents.length})
             </TabsTrigger>
+            <TabsTrigger value="tax" className="data-[state=active]:bg-marigold data-[state=active]:text-indigo-950" data-testid="tax-compliance-tab">
+              <Receipt className="h-4 w-4 mr-2" />
+              Tax & Compliance
+            </TabsTrigger>
           </TabsList>
 
           {/* Browse Students Tab */}
