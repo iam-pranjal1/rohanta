@@ -196,6 +196,9 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Success Stories Section */}
+      <SuccessStories />
+
       {/* CTA Section */}
       <section className="py-20 bg-indigo-950 text-white">
         <div className="max-w-4xl mx-auto px-6 md:px-12 text-center">
