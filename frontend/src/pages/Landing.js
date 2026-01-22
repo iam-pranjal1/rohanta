@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { GraduationCap, Building2, Heart, TrendingUp, Users, Award, ArrowRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { GraduationCap, Building2, Heart, TrendingUp, Users, Award, ArrowRight, LogOut, LayoutDashboard } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import axios from 'axios';
 import SuccessStories from '../components/SuccessStories';
 import CompanyLeaderboard from '../components/CompanyLeaderboard';
+import { useAuth } from '../contexts/AuthContext';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
 
