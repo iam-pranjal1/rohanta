@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, Upload, FileText, CheckCircle, Clock, XCircle, LogOut, TrendingUp, Heart, Award } from 'lucide-react';
+import { 
+  GraduationCap, Upload, FileText, CheckCircle, Clock, XCircle, LogOut, 
+  TrendingUp, Heart, Award, Target, DollarSign, BookOpen, Calendar,
+  Building2, MapPin, Phone, Mail
+} from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,6 +15,7 @@ import { useToast } from '../hooks/use-toast';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import AnimatedCard from '../components/AnimatedCard';
+import EnhancedProgressTimeline from '../components/EnhancedProgressTimeline';
 
 const StudentDashboard = () => {
   const [profile, setProfile] = useState(null);
@@ -81,6 +85,14 @@ const StudentDashboard = () => {
     navigate('/');
   };
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amount || 0);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 to-white flex items-center justify-center">
@@ -95,7 +107,11 @@ const StudentDashboard = () => {
   const student = profile?.student;
   const documents = profile?.documents || [];
   const sponsorship = profile?.sponsorship;
+  const companyName = profile?.company_name;
   const progressReports = profile?.progress_reports || [];
+  const coaching = student?.coaching_details;
+  const funding = student?.funding_details;
+  const examPerformance = student?.exam_performance;
 
   const getDocumentStatus = (docType) => {
     const doc = documents.find(d => d.document_type === docType);
@@ -109,6 +125,15 @@ const StudentDashboard = () => {
 
   const allDocsUploaded = incomeDoc.uploaded && class10Doc.uploaded && aadharDoc.uploaded;
   const uploadProgress = [incomeDoc.uploaded, class10Doc.uploaded, aadharDoc.uploaded].filter(Boolean).length * 33.33;
+
+  // Funding calculations
+  const fundingProgress = funding?.total_amount_allocated > 0 
+    ? ((funding?.amount_utilized || 0) / funding.total_amount_allocated) * 100 
+    : 0;
+
+  // Mock test trends
+  const mockTests = examPerformance?.mock_tests || [];
+  const latestMockTest = mockTests.length > 0 ? mockTests[mockTests.length - 1] : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-white" data-testid="student-dashboard">
@@ -134,112 +159,211 @@ const StudentDashboard = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Welcome Section */}
+        {/* Welcome Section with Profile Summary */}
         <div className="mb-8 animate-fade-in">
-          <div className="flex items-center gap-4 mb-2">
-            <Avatar name={student?.full_name} size="xl" className="animate-scale-in" />
-            <div>
-              <h1 className="font-heading text-4xl font-bold text-indigo-950">
-                Welcome, {student?.full_name}!
-              </h1>
-              <p className="text-gray-600 text-lg">Track your journey towards IIT/NEET success</p>
+          <div className="bg-gradient-to-r from-indigo-950 to-indigo-900 rounded-2xl p-6 text-white">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+              <Avatar name={student?.full_name} size="xl" className="border-4 border-amber-400 animate-scale-in" />
+              <div className="flex-1">
+                <h1 className="font-heading text-3xl md:text-4xl font-bold mb-2">
+                  Welcome, {student?.full_name}!
+                </h1>
+                <div className="flex flex-wrap gap-4 text-sm text-gray-300">
+                  <div className="flex items-center gap-1">
+                    <Mail className="h-4 w-4" />
+                    {student?.email}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Phone className="h-4 w-4" />
+                    {student?.phone}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <GraduationCap className="h-4 w-4" />
+                    {student?.school_name}
+                  </div>
+                </div>
+                {student?.is_sponsored && companyName && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <Badge className="bg-emerald-500 text-white">
+                      <Heart className="h-3 w-3 mr-1" /> Sponsored by {companyName}
+                    </Badge>
+                  </div>
+                )}
+              </div>
+              <div className="text-right">
+                <div className="flex items-center gap-2 mb-1">
+                  <Award className="h-6 w-6 text-amber-400" />
+                  <span className="text-3xl font-bold text-amber-400">{student?.class_10_percentage}%</span>
+                </div>
+                <p className="text-xs text-gray-400">Class 10 Score</p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Status Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-4 gap-4 mb-8">
           <AnimatedCard delay={100} className="border-amber-100 shadow-md hover:shadow-xl hover-lift" data-testid="verification-status-card">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle className="text-sm flex items-center gap-2">
                 <div className="p-2 bg-blue-100 rounded-full">
-                  <CheckCircle className="h-5 w-5 text-blue-600" />
+                  <CheckCircle className="h-4 w-4 text-blue-600" />
                 </div>
-                Verification Status
+                Verification
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <Badge className={`text-sm px-4 py-2 font-semibold ${
-                  student?.verification_status === 'verified' ? 'bg-emerald-500 text-white hover:bg-emerald-600' :
-                  student?.verification_status === 'rejected' ? 'bg-red-500 text-white hover:bg-red-600' :
-                  'bg-amber-400 text-indigo-950 hover:bg-amber-500'
-                }`}>
-                  {student?.verification_status === 'verified' && <CheckCircle className="h-4 w-4 mr-1" />}
-                  {student?.verification_status === 'pending' && <Clock className="h-4 w-4 mr-1" />}
-                  {student?.verification_status === 'rejected' && <XCircle className="h-4 w-4 mr-1" />}
-                  {student?.verification_status?.toUpperCase()}
-                </Badge>
-              </div>
-              <p className="text-xs text-gray-500 mt-3">
-                {student?.verification_status === 'verified' && 'Your documents have been verified'}
-                {student?.verification_status === 'pending' && 'Admin reviewing your documents'}
-                {student?.verification_status === 'rejected' && 'Please reupload your documents'}
-              </p>
+              <Badge className={`text-sm px-3 py-1 font-semibold ${
+                student?.verification_status === 'verified' ? 'bg-emerald-500 text-white' :
+                student?.verification_status === 'rejected' ? 'bg-red-500 text-white' :
+                'bg-amber-400 text-indigo-950'
+              }`}>
+                {student?.verification_status?.toUpperCase()}
+              </Badge>
             </CardContent>
           </AnimatedCard>
 
           <AnimatedCard delay={200} className="border-amber-100 shadow-md hover:shadow-xl hover-lift" data-testid="sponsorship-status-card">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle className="text-sm flex items-center gap-2">
                 <div className="p-2 bg-purple-100 rounded-full">
-                  <Heart className="h-5 w-5 text-purple-600" />
+                  <Heart className="h-4 w-4 text-purple-600" />
                 </div>
-                Sponsorship Status
+                Sponsorship
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                {student?.is_sponsored ? (
-                  <Badge className="bg-emerald-500 text-white hover:bg-emerald-600 text-sm px-4 py-2 font-semibold">
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    SPONSORED
-                  </Badge>
-                ) : (
-                  <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 text-sm px-4 py-2 font-semibold">
-                    <Clock className="h-4 w-4 mr-1" />
-                    AWAITING SPONSOR
-                  </Badge>
-                )}
-              </div>
-              <p className="text-xs text-gray-500 mt-3">
-                {student?.is_sponsored ? 'A company is supporting your education' : 'Your profile is visible to companies'}
-              </p>
+              <Badge className={`text-sm px-3 py-1 font-semibold ${
+                student?.is_sponsored ? 'bg-emerald-500 text-white' : 'bg-blue-100 text-blue-800'
+              }`}>
+                {student?.is_sponsored ? 'SPONSORED' : 'AWAITING'}
+              </Badge>
             </CardContent>
           </AnimatedCard>
 
-          <AnimatedCard delay={300} className="border-amber-100 shadow-md hover:shadow-xl hover-lift">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <div className="p-2 bg-marigold-100 rounded-full">
-                  <Award className="h-5 w-5 text-marigold-600" />
+          {coaching && (
+            <AnimatedCard delay={300} className="border-amber-100 shadow-md hover:shadow-xl hover-lift">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <div className="p-2 bg-indigo-100 rounded-full">
+                    <Target className="h-4 w-4 text-indigo-600" />
+                  </div>
+                  Coaching
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Badge className="bg-indigo-100 text-indigo-800 text-sm px-3 py-1">
+                  {coaching.coaching_type}
+                </Badge>
+              </CardContent>
+            </AnimatedCard>
+          )}
+
+          {latestMockTest && (
+            <AnimatedCard delay={400} className="border-amber-100 shadow-md hover:shadow-xl hover-lift">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <div className="p-2 bg-purple-100 rounded-full">
+                    <BookOpen className="h-4 w-4 text-purple-600" />
+                  </div>
+                  Latest Mock
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="font-bold text-lg text-purple-700">
+                  {latestMockTest.obtained_marks}/{latestMockTest.total_marks}
                 </div>
-                Class 10 Score
+                <p className="text-xs text-gray-500">Rank: {latestMockTest.rank || 'N/A'}</p>
+              </CardContent>
+            </AnimatedCard>
+          )}
+        </div>
+
+        {/* Coaching Details Section */}
+        {coaching && (
+          <AnimatedCard delay={300} className="mb-8 border-amber-100 shadow-md">
+            <CardHeader>
+              <CardTitle className="font-heading text-xl text-indigo-950 flex items-center gap-2">
+                <Target className="h-6 w-6 text-indigo-600" />
+                Coaching Details
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4">
-                <div className="text-4xl font-heading font-bold text-marigold">
-                  {student?.class_10_percentage}%
-                </div>
-                <div className="flex-1">
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-marigold to-amber-400" 
-                      style={{width: `${student?.class_10_percentage}%`}}
-                    />
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Building2 className="h-5 w-5 text-blue-600" />
+                    <span className="font-semibold text-indigo-950">Institute</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">Academic Performance</p>
+                  <p className="text-lg font-bold text-blue-700">{coaching.institute_name}</p>
+                  <p className="text-sm text-gray-600">{coaching.institute_location}</p>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BookOpen className="h-5 w-5 text-purple-600" />
+                    <span className="font-semibold text-indigo-950">Program</span>
+                  </div>
+                  <Badge className="bg-purple-100 text-purple-800 mb-1">{coaching.coaching_type}</Badge>
+                  <p className="text-sm text-gray-600">{coaching.course_duration}</p>
+                  <p className="text-xs text-gray-500">Batch: {coaching.batch_year}</p>
+                </div>
+                <div className="bg-amber-50 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="h-5 w-5 text-amber-600" />
+                    <span className="font-semibold text-indigo-950">Target Exam</span>
+                  </div>
+                  <p className="text-lg font-bold text-amber-700">{coaching.expected_exam_date}</p>
+                  <p className="text-xs text-gray-500">Enrolled: {coaching.enrollment_date}</p>
                 </div>
               </div>
             </CardContent>
           </AnimatedCard>
-        </div>
+        )}
+
+        {/* Funding Details Section */}
+        {funding && funding.total_amount_allocated > 0 && (
+          <AnimatedCard delay={350} className="mb-8 border-amber-100 shadow-md">
+            <CardHeader>
+              <CardTitle className="font-heading text-xl text-indigo-950 flex items-center gap-2">
+                <DollarSign className="h-6 w-6 text-emerald-600" />
+                Funding Allocation
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-6">
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="font-medium">Total Allocated: {formatCurrency(funding.total_amount_allocated)}</span>
+                  <span className="font-medium text-emerald-600">
+                    Utilized: {formatCurrency(funding.amount_utilized)} ({fundingProgress.toFixed(0)}%)
+                  </span>
+                </div>
+                <Progress value={fundingProgress} className="h-4" />
+                <p className="text-sm text-gray-500 mt-2">
+                  Remaining: {formatCurrency(funding.total_amount_allocated - funding.amount_utilized)} | 
+                  Payment Schedule: {funding.payment_schedule}
+                </p>
+              </div>
+
+              {funding.funding_breakdown && (
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+                  {Object.entries(funding.funding_breakdown).map(([key, value]) => (
+                    value > 0 && (
+                      <div key={key} className="bg-gray-50 rounded-lg p-3 text-center">
+                        <p className="text-xs text-gray-600 capitalize mb-1">{key.replace('_', ' ')}</p>
+                        <p className="font-bold text-emerald-700">{formatCurrency(value)}</p>
+                      </div>
+                    )
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </AnimatedCard>
+        )}
 
         {/* Document Upload Section */}
         <AnimatedCard delay={400} className="mb-8 border-amber-100 shadow-md">
           <CardHeader>
-            <CardTitle className="font-heading text-2xl text-indigo-950">Document Upload</CardTitle>
+            <CardTitle className="font-heading text-xl text-indigo-950">Document Upload</CardTitle>
             <CardDescription>Upload your documents for verification</CardDescription>
           </CardHeader>
           <CardContent>
@@ -248,20 +372,7 @@ const StudentDashboard = () => {
                 <span className="text-base font-semibold text-indigo-950">Upload Progress</span>
                 <span className="text-base font-bold text-marigold">{Math.round(uploadProgress)}%</span>
               </div>
-              <div className="relative">
-                <Progress value={uploadProgress} className="h-3" />
-                <div className="absolute top-0 left-0 w-full h-3 flex items-center justify-between px-1">
-                  <div className={`w-1 h-full ${uploadProgress >= 33 ? 'bg-white' : 'bg-transparent'}`} />
-                  <div className={`w-1 h-full ${uploadProgress >= 66 ? 'bg-white' : 'bg-transparent'}`} />
-                  <div className={`w-1 h-full ${uploadProgress >= 99 ? 'bg-white' : 'bg-transparent'}`} />
-                </div>
-              </div>
-              <div className="flex justify-between mt-2 text-xs text-gray-500">
-                <span>0 docs</span>
-                <span>1 doc</span>
-                <span>2 docs</span>
-                <span>3 docs</span>
-              </div>
+              <Progress value={uploadProgress} className="h-3" />
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -298,7 +409,6 @@ const StudentDashboard = () => {
                       className="mt-2"
                       data-testid="upload-income-cert"
                     />
-                    <p className="text-xs text-gray-500 mt-2">Upload your family income certificate</p>
                   </div>
                 )}
               </div>
@@ -336,7 +446,6 @@ const StudentDashboard = () => {
                       className="mt-2"
                       data-testid="upload-class10-cert"
                     />
-                    <p className="text-xs text-gray-500 mt-2">Upload your 10th grade marksheet</p>
                   </div>
                 )}
               </div>
@@ -374,14 +483,13 @@ const StudentDashboard = () => {
                       className="mt-2"
                       data-testid="upload-aadhar"
                     />
-                    <p className="text-xs text-gray-500 mt-2">Upload your Aadhar card (both sides)</p>
                   </div>
                 )}
               </div>
             </div>
 
             {allDocsUploaded && (
-              <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-sm">
+              <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
                 <p className="text-emerald-800 font-semibold">
                   <CheckCircle className="inline h-5 w-5 mr-2" />
                   All documents uploaded! Awaiting admin verification.
@@ -391,58 +499,97 @@ const StudentDashboard = () => {
           </CardContent>
         </AnimatedCard>
 
-        {/* Progress Reports */}
-        {sponsorship && progressReports.length > 0 && (
-          <AnimatedCard delay={500} className="border-amber-100" data-testid="progress-reports-section">
+        {/* Exam Performance Section */}
+        {examPerformance && (mockTests.length > 0 || examPerformance.actual_exams?.length > 0) && (
+          <AnimatedCard delay={450} className="mb-8 border-amber-100 shadow-md">
             <CardHeader>
-              <CardTitle className="font-heading text-2xl text-indigo-950">Your Progress</CardTitle>
-              <CardDescription>Track your academic journey</CardDescription>
+              <CardTitle className="font-heading text-xl text-indigo-950 flex items-center gap-2">
+                <TrendingUp className="h-6 w-6 text-purple-600" />
+                Exam Performance
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {progressReports.map((report) => (
-                  <div key={report.report_id} className="border border-amber-100 rounded-sm p-4 hover:shadow-md transition-all">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-semibold text-indigo-950">{report.report_month}</h3>
-                      <Badge className="bg-emerald-100 text-emerald-800">
-                        <TrendingUp className="h-4 w-4 mr-1" />
-                        Progress Update
-                      </Badge>
-                    </div>
-                    
-                    {report.test_scores && (
-                      <div className="mb-3">
-                        <p className="text-sm text-gray-600 mb-2">Test Scores:</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          {Object.entries(report.test_scores).map(([subject, score]) => (
-                            <div key={subject} className="bg-amber-50 p-2 rounded-sm">
-                              <span className="text-xs text-gray-600">{subject}:</span>
-                              <span className="ml-2 font-semibold text-indigo-950">{score}</span>
-                            </div>
-                          ))}
-                        </div>
+              {/* Mock Tests Summary */}
+              {mockTests.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="font-semibold text-gray-700 mb-3">Mock Test Trend (Last 5)</h4>
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    {mockTests.slice(-5).map((test, idx) => (
+                      <div key={test.test_id || idx} className="flex-shrink-0 bg-purple-50 rounded-lg p-3 min-w-[120px]">
+                        <p className="text-xs text-gray-600 truncate">{test.exam_name}</p>
+                        <p className="font-bold text-purple-700">{test.obtained_marks}/{test.total_marks}</p>
+                        <p className="text-xs text-gray-500">Rank: {test.rank || 'N/A'}</p>
                       </div>
-                    )}
-                    
-                    {report.attendance_percentage && (
-                      <div className="mb-3">
-                        <p className="text-sm text-gray-600 mb-2">Attendance:</p>
-                        <div className="flex items-center">
-                          <Progress value={report.attendance_percentage} className="h-2 flex-1 mr-3" />
-                          <span className="font-semibold text-indigo-950">{report.attendance_percentage}%</span>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {report.report_text && (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-2">Comments:</p>
-                        <p className="text-gray-700">{report.report_text}</p>
-                      </div>
-                    )}
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+
+              {/* Actual Exams */}
+              {examPerformance.actual_exams?.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-700 mb-3">Actual Exam Results</h4>
+                  <div className="space-y-2">
+                    {examPerformance.actual_exams.map((exam, idx) => (
+                      <div key={exam.exam_id || idx} className="bg-amber-50 rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{exam.exam_name}</p>
+                          <p className="text-sm text-gray-600">
+                            Score: {exam.obtained_marks}/{exam.total_marks} | AIR: {exam.rank || 'N/A'}
+                          </p>
+                        </div>
+                        <Badge className={exam.qualified ? 'bg-emerald-500 text-white' : 'bg-gray-400 text-white'}>
+                          {exam.qualified ? 'QUALIFIED' : 'NOT QUALIFIED'}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Final Result */}
+              {examPerformance.final_result?.exam_cleared && (
+                <div className="mt-6 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg p-6 text-white">
+                  <h4 className="font-bold text-xl mb-3 flex items-center gap-2">
+                    <Award className="h-6 w-6" />
+                    ACHIEVEMENT UNLOCKED!
+                  </h4>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-emerald-100">Exam Cleared</p>
+                      <p className="font-bold text-lg">{examPerformance.final_result.exam_name}</p>
+                    </div>
+                    <div>
+                      <p className="text-emerald-100">All India Rank</p>
+                      <p className="font-bold text-lg">{examPerformance.final_result.final_rank}</p>
+                    </div>
+                    <div>
+                      <p className="text-emerald-100">College Allotted</p>
+                      <p className="font-bold">{examPerformance.final_result.college_allotted}</p>
+                    </div>
+                    <div>
+                      <p className="text-emerald-100">Branch/Course</p>
+                      <p className="font-bold">{examPerformance.final_result.branch_course}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </AnimatedCard>
+        )}
+
+        {/* Progress Timeline */}
+        {sponsorship && (
+          <AnimatedCard delay={500} className="border-amber-100 shadow-md" data-testid="progress-reports-section">
+            <CardHeader>
+              <CardTitle className="font-heading text-xl text-indigo-950 flex items-center gap-2">
+                <Calendar className="h-6 w-6 text-indigo-600" />
+                Progress Timeline
+              </CardTitle>
+              <CardDescription>Your monthly progress reports</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <EnhancedProgressTimeline reports={progressReports} student={student} />
             </CardContent>
           </AnimatedCard>
         )}
