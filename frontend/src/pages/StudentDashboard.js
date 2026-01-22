@@ -206,9 +206,9 @@ const StudentDashboard = () => {
                 {student?.is_sponsored ? 'A company is supporting your education' : 'Your profile is visible to companies'}
               </p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
-          <Card className="border-amber-100 shadow-md hover:shadow-lg transition-all">
+          <AnimatedCard delay={300} className="border-amber-100 shadow-md hover:shadow-xl hover-lift">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <div className="p-2 bg-marigold-100 rounded-full">
