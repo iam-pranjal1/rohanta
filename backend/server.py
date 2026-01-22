@@ -1531,6 +1531,92 @@ async def get_public_stats():
         }
     }
 
+@api_router.get("/public/leaderboard")
+async def get_company_leaderboard(limit: int = 10):
+    """Get public leaderboard of top CSR contributing companies"""
+    companies = await db.companies.find({}, {"_id": 0, "password_hash": 0}).to_list(None)
+    
+    leaderboard = []
+    for company in companies:
+        company_id = company["company_id"]
+        
+        # Get sponsorship count
+        sponsorship_count = await db.sponsorships.count_documents({"company_id": company_id})
+        
+        if sponsorship_count == 0:
+            continue  # Skip companies with no sponsorships
+        
+        # Get student IDs for this company
+        sponsorships = await db.sponsorships.find({"company_id": company_id}, {"_id": 0, "student_id": 1}).to_list(None)
+        student_ids = [s["student_id"] for s in sponsorships]
+        
+        # Calculate total funds and success metrics
+        total_funds = 0
+        funds_utilized = 0
+        success_count = 0  # Students who cleared exams
+        
+        if student_ids:
+            students = await db.students.find(
+                {"student_id": {"$in": student_ids}},
+                {"_id": 0, "funding_details": 1, "exam_performance": 1, "full_name": 1}
+            ).to_list(None)
+            
+            for s in students:
+                if s.get("funding_details"):
+                    total_funds += s["funding_details"].get("total_amount_allocated", 0)
+                    funds_utilized += s["funding_details"].get("amount_utilized", 0)
+                
+                # Check for exam success
+                if s.get("exam_performance", {}).get("final_result", {}).get("exam_cleared"):
+                    success_count += 1
+        
+        # Calculate impact score
+        # Formula: (students * 100) + (funds_utilized / 1000) + (success * 500)
+        impact_score = (sponsorship_count * 100) + int(funds_utilized / 1000) + (success_count * 500)
+        
+        # Determine tier based on impact score
+        if impact_score >= 10000:
+            tier = "Diamond"
+            tier_color = "purple"
+        elif impact_score >= 5000:
+            tier = "Platinum"
+            tier_color = "indigo"
+        elif impact_score >= 2000:
+            tier = "Gold"
+            tier_color = "amber"
+        elif impact_score >= 1000:
+            tier = "Silver"
+            tier_color = "gray"
+        else:
+            tier = "Bronze"
+            tier_color = "orange"
+        
+        leaderboard.append({
+            "company_id": company_id,
+            "company_name": company.get("company_name"),
+            "industry": company.get("industry"),
+            "students_sponsored": sponsorship_count,
+            "total_funds": total_funds,
+            "funds_utilized": funds_utilized,
+            "success_stories": success_count,
+            "impact_score": impact_score,
+            "tier": tier,
+            "tier_color": tier_color,
+            "joined_date": company.get("created_at", "")[:10] if company.get("created_at") else None
+        })
+    
+    # Sort by impact score descending
+    leaderboard.sort(key=lambda x: x["impact_score"], reverse=True)
+    
+    # Add rank
+    for idx, item in enumerate(leaderboard):
+        item["rank"] = idx + 1
+    
+    return {
+        "leaderboard": leaderboard[:limit],
+        "total_companies": len(leaderboard)
+    }
+
 # Include router
 app.include_router(api_router)
 
