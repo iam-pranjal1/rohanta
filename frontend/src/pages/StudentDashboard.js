@@ -135,16 +135,21 @@ const StudentDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="font-heading text-4xl font-bold text-indigo-950 mb-2">
-            Welcome, {student?.full_name}!
-          </h1>
-          <p className="text-gray-600 text-lg">Track your journey towards IIT/NEET success</p>
+        <div className="mb-8 animate-fade-in">
+          <div className="flex items-center gap-4 mb-2">
+            <Avatar name={student?.full_name} size="xl" className="animate-scale-in" />
+            <div>
+              <h1 className="font-heading text-4xl font-bold text-indigo-950">
+                Welcome, {student?.full_name}!
+              </h1>
+              <p className="text-gray-600 text-lg">Track your journey towards IIT/NEET success</p>
+            </div>
+          </div>
         </div>
 
         {/* Status Cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-amber-100 shadow-md hover:shadow-lg transition-all" data-testid="verification-status-card">
+          <AnimatedCard delay={100} className="border-amber-100 shadow-md hover:shadow-xl hover-lift" data-testid="verification-status-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <div className="p-2 bg-blue-100 rounded-full">
