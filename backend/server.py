@@ -96,6 +96,14 @@ class ProgressReport(BaseModel):
     report_text: Optional[str] = None
     report_month: str
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+    role: UserRole
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
 # Helper Functions
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
