@@ -103,6 +103,89 @@ const CompanyLeaderboard = () => {
 
         {/* Leaderboard */}
         <div className="max-w-4xl mx-auto">
+          {/* Single Company Featured Card */}
+          {leaderboard.length === 1 && (
+            <div className="max-w-lg mx-auto mb-8">
+              <Card className={`${getRankBackground(1)} border-2 overflow-hidden shadow-xl`}>
+                <div className="bg-gradient-to-r from-amber-400 to-yellow-500 py-2 text-center">
+                  <Sparkles className="h-5 w-5 text-white inline mr-1" />
+                  <span className="text-white font-bold text-sm">FOUNDING CHAMPION</span>
+                </div>
+                <CardContent className="p-8 text-center">
+                  <div className="mb-4">{getRankIcon(1)}</div>
+                  <Badge className={getTierStyles(leaderboard[0].tier)}>
+                    {leaderboard[0].tier}
+                  </Badge>
+                  <h3 className="font-bold text-2xl text-indigo-950 mt-4 mb-2">
+                    {leaderboard[0].company_name}
+                  </h3>
+                  <p className="text-gray-500 mb-4">{leaderboard[0].industry}</p>
+                  <div className="flex justify-center gap-8 text-sm mb-4">
+                    <div>
+                      <p className="font-bold text-indigo-600 text-2xl">{leaderboard[0].students_sponsored}</p>
+                      <p className="text-xs text-gray-500">Students Sponsored</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-emerald-600 text-2xl">{formatCurrency(leaderboard[0].total_funds)}</p>
+                      <p className="text-xs text-gray-500">Funds Committed</p>
+                    </div>
+                  </div>
+                  {leaderboard[0].success_stories > 0 && (
+                    <div className="bg-emerald-50 rounded-lg py-2 px-4 inline-block">
+                      <Award className="h-4 w-4 text-emerald-600 inline mr-1" />
+                      <span className="text-sm text-emerald-700 font-medium">
+                        {leaderboard[0].success_stories} Success {leaderboard[0].success_stories === 1 ? 'Story' : 'Stories'}
+                      </span>
+                    </div>
+                  )}
+                  <div className="mt-4 pt-4 border-t">
+                    <p className="text-3xl font-bold text-amber-600">{leaderboard[0].impact_score}</p>
+                    <p className="text-xs text-gray-500">Impact Score</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <p className="text-center text-gray-500 mt-4 text-sm">
+                Be among the first companies to join our leaderboard!
+              </p>
+            </div>
+          )}
+
+          {/* Two Companies Layout */}
+          {leaderboard.length === 2 && (
+            <div className="grid md:grid-cols-2 gap-6 mb-8 max-w-2xl mx-auto">
+              {leaderboard.map((company, idx) => (
+                <Card key={company.company_id} className={`${getRankBackground(idx + 1)} border-2 overflow-hidden`}>
+                  {idx === 0 && (
+                    <div className="bg-gradient-to-r from-amber-400 to-yellow-500 py-2 text-center">
+                      <Sparkles className="h-5 w-5 text-white inline mr-1" />
+                      <span className="text-white font-bold text-sm">TOP CONTRIBUTOR</span>
+                    </div>
+                  )}
+                  <CardContent className="p-6 text-center">
+                    <div className="mb-3">{getRankIcon(idx + 1)}</div>
+                    <Badge className={getTierStyles(company.tier)}>{company.tier}</Badge>
+                    <h3 className="font-bold text-lg text-indigo-950 mt-3 mb-1">{company.company_name}</h3>
+                    <p className="text-sm text-gray-500 mb-3">{company.industry}</p>
+                    <div className="flex justify-center gap-4 text-sm">
+                      <div>
+                        <p className="font-bold text-indigo-600">{company.students_sponsored}</p>
+                        <p className="text-xs text-gray-500">Students</p>
+                      </div>
+                      <div>
+                        <p className="font-bold text-emerald-600">{formatCurrency(company.total_funds)}</p>
+                        <p className="text-xs text-gray-500">Funds</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 pt-3 border-t">
+                      <p className="text-2xl font-bold text-gray-700">{company.impact_score}</p>
+                      <p className="text-xs text-gray-500">Impact Score</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
           {/* Top 3 Spotlight */}
           {leaderboard.length >= 3 && (
             <div className="grid md:grid-cols-3 gap-6 mb-8">
