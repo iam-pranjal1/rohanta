@@ -4,6 +4,7 @@ import { GraduationCap, Building2, Heart, TrendingUp, Users, Award, ArrowRight }
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import axios from 'axios';
+import SuccessStories from '../components/SuccessStories';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
 
