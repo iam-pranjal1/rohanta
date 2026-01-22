@@ -237,11 +237,24 @@ const StudentDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-gray-600">Upload Progress</span>
-                <span className="text-sm font-semibold text-gray-600">{Math.round(uploadProgress)}%</span>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-base font-semibold text-indigo-950">Upload Progress</span>
+                <span className="text-base font-bold text-marigold">{Math.round(uploadProgress)}%</span>
               </div>
-              <Progress value={uploadProgress} className="h-2" />
+              <div className="relative">
+                <Progress value={uploadProgress} className="h-3" />
+                <div className="absolute top-0 left-0 w-full h-3 flex items-center justify-between px-1">
+                  <div className={`w-1 h-full ${uploadProgress >= 33 ? 'bg-white' : 'bg-transparent'}`} />
+                  <div className={`w-1 h-full ${uploadProgress >= 66 ? 'bg-white' : 'bg-transparent'}`} />
+                  <div className={`w-1 h-full ${uploadProgress >= 99 ? 'bg-white' : 'bg-transparent'}`} />
+                </div>
+              </div>
+              <div className="flex justify-between mt-2 text-xs text-gray-500">
+                <span>0 docs</span>
+                <span>1 doc</span>
+                <span>2 docs</span>
+                <span>3 docs</span>
+              </div>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
