@@ -209,7 +209,7 @@ const AdminDashboard = () => {
               </div>
               <p className="text-xs text-gray-500 mt-1">Awaiting Review</p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
           <Card className="bg-white shadow-md hover:shadow-lg transition-all">
             <CardHeader className="pb-3">
