@@ -457,7 +457,7 @@ const StudentDashboard = () => {
                 Your profile is verified and visible to companies. You'll be notified when a company sponsors your education.
               </p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         )}
       </div>
     </div>
