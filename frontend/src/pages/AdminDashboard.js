@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   ShieldCheck, Users, TrendingUp, LogOut, CheckCircle, XCircle, FileText, 
   Award, Clock, Heart, Settings, Upload, Search, Filter, ChevronDown,
-  Target, BookOpen, Calendar, Building2
+  Target, BookOpen, Calendar, Building2, Trophy, Briefcase
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -19,6 +19,7 @@ import Avatar from '../components/Avatar';
 import AnimatedCard from '../components/AnimatedCard';
 import AdminStudentForms from '../components/AdminStudentForms';
 import StudentProfileCard from '../components/StudentProfileCard';
+import CSRPartners from '../components/CSRPartners';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({});
