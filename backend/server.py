@@ -46,6 +46,11 @@ app = FastAPI(title="CSR Education Platform API")
 # Create router with /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Health check endpoint
+@api_router.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "CSR Education Platform API"}
+
 # Enums
 class UserRole(str, Enum):
     STUDENT = "student"
