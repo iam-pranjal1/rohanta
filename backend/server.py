@@ -225,6 +225,157 @@ async def login(login_data: LoginRequest):
         "user_id": user[id_field]
     }
 
+@api_router.post("/auth/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest):
+    """Send password reset email"""
+    collection = None
+    name_field = None
+    
+    if request.role == UserRole.STUDENT:
+        collection = db.students
+        name_field = "full_name"
+    elif request.role == UserRole.COMPANY:
+        collection = db.companies
+        name_field = "company_name"
+    elif request.role == UserRole.ADMIN:
+        collection = db.admins
+        name_field = "name"
+    
+    user = await collection.find_one({"email": request.email})
+    if not user:
+        # Don't reveal if email exists
+        return {"success": True, "message": "If the email exists, a reset link has been sent"}
+    
+    # Generate reset token
+    reset_token = secrets.token_urlsafe(32)
+    reset_token_hash = hash_password(reset_token)
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    
+    # Store reset token in database
+    await db.password_resets.insert_one({
+        "email": request.email,
+        "role": request.role,
+        "token_hash": reset_token_hash,
+        "expires_at": expires_at.isoformat(),
+        "used": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    # Create reset link
+    frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+    reset_link = f"{frontend_url}/reset-password?token={reset_token}"
+    
+    # Send email using Resend
+    try:
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }}
+                .content {{ background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; }}
+                .button {{ display: inline-block; background: #F59E0B; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; margin: 20px 0; }}
+                .footer {{ text-align: center; color: #6b7280; font-size: 12px; margin-top: 20px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🎓 EduUplift</h1>
+                    <p>Password Reset Request</p>
+                </div>
+                <div class="content">
+                    <p>Hello {user.get(name_field, 'User')},</p>
+                    <p>We received a request to reset your password for your EduUplift account.</p>
+                    <p>Click the button below to reset your password:</p>
+                    <div style="text-align: center;">
+                        <a href="{reset_link}" class="button">Reset Password</a>
+                    </div>
+                    <p>Or copy and paste this link into your browser:</p>
+                    <p style="word-break: break-all; color: #6b7280; font-size: 14px;">{reset_link}</p>
+                    <p><strong>This link will expire in 1 hour.</strong></p>
+                    <p>If you didn't request a password reset, you can safely ignore this email.</p>
+                    <p>Best regards,<br>The EduUplift Team</p>
+                </div>
+                <div class="footer">
+                    <p>© 2025 EduUplift. Empowering dreams through education.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [request.email],
+            "subject": "Reset Your EduUplift Password",
+            "html": html_content
+        }
+        
+        # Run sync SDK in thread to keep FastAPI non-blocking
+        email_result = await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"Password reset email sent to {request.email}, Email ID: {email_result.get('id')}")
+        
+    except Exception as e:
+        logger.error(f"Failed to send reset email: {str(e)}")
+        # Don't fail the request if email fails, token is still valid
+    
+    return {
+        "success": True,
+        "message": "If the email exists, a reset link has been sent"
+    }
+
+@api_router.post("/auth/reset-password")
+async def reset_password(request: ResetPasswordRequest):
+    """Reset password using token"""
+    
+    # Find valid reset token
+    reset_records = await db.password_resets.find({"used": False}, {"_id": 0}).to_list(100)
+    
+    valid_record = None
+    for record in reset_records:
+        if verify_password(request.token, record["token_hash"]):
+            # Check if token is expired
+            expires_at = datetime.fromisoformat(record["expires_at"])
+            if datetime.now(timezone.utc) < expires_at:
+                valid_record = record
+                break
+    
+    if not valid_record:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    
+    # Validate new password
+    if len(request.new_password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+    
+    # Update password in appropriate collection
+    collection = None
+    if valid_record["role"] == UserRole.STUDENT:
+        collection = db.students
+    elif valid_record["role"] == UserRole.COMPANY:
+        collection = db.companies
+    elif valid_record["role"] == UserRole.ADMIN:
+        collection = db.admins
+    
+    # Update password
+    await collection.update_one(
+        {"email": valid_record["email"]},
+        {"$set": {"password_hash": hash_password(request.new_password)}}
+    )
+    
+    # Mark token as used
+    await db.password_resets.update_one(
+        {"email": valid_record["email"], "token_hash": valid_record["token_hash"]},
+        {"$set": {"used": True}}
+    )
+    
+    return {
+        "success": True,
+        "message": "Password has been reset successfully"
+    }
+
 # Student Routes
 @api_router.post("/student/upload-document")
 async def upload_document(document: DocumentUpload, current_user: dict = Depends(verify_token)):
