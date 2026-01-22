@@ -374,7 +374,7 @@ const CompanyDashboard = () => {
                             </div>
                           </div>
                         </CardContent>
-                      </Card>
+                      </AnimatedCard>
                     ))}
                   </div>
                 )}
