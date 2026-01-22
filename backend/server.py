@@ -1063,7 +1063,7 @@ async def get_sponsored_students_admin(current_user: dict = Depends(verify_token
     company_ids = [s["company_id"] for s in sponsorships]
     companies = await db.companies.find(
         {"company_id": {"$in": company_ids}},
-        {"_id": 0, "password_hash": 0, "company_name": 1, "company_id": 1}
+        {"_id": 0, "company_name": 1, "company_id": 1}
     ).to_list(None)
     
     companies_dict = {c["company_id"]: c for c in companies}
