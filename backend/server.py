@@ -675,6 +675,28 @@ async def verify_student(student_id: str, approved: bool = Form(...), current_us
     
     return {"success": True}
 
+@api_router.put("/admin/bulk-verify-students")
+async def bulk_verify_students(
+    student_ids: List[str] = Form(...),
+    approved: bool = Form(...),
+    current_user: dict = Depends(verify_token)
+):
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    new_status = VerificationStatus.VERIFIED if approved else VerificationStatus.REJECTED
+    
+    result = await db.students.update_many(
+        {"student_id": {"$in": student_ids}},
+        {"$set": {"verification_status": new_status}}
+    )
+    
+    return {
+        "success": True,
+        "modified_count": result.modified_count,
+        "status": new_status
+    }
+
 @api_router.post("/admin/progress-report/{student_id}")
 async def add_progress_report(student_id: str, report: ProgressReport, current_user: dict = Depends(verify_token)):
     if current_user['role'] != UserRole.ADMIN:
