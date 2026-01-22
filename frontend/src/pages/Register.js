@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { GraduationCap, Building2, Eye, EyeOff } from 'lucide-react';
+import { GraduationCap, Building2, Eye, EyeOff, CalendarIcon } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { Calendar } from '../components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/use-toast';
 import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
+import { format } from 'date-fns';
 
 const Register = () => {
   const [searchParams] = useSearchParams();
