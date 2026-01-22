@@ -547,13 +547,30 @@ async def get_pending_students(current_user: dict = Depends(verify_token)):
         {"_id": 0, "password_hash": 0}
     ).to_list(1000)
     
-    # Get documents for each student
+    if not students:
+        return {"pending_students": []}
+    
+    # Batch fetch all documents to avoid N+1 queries
+    student_ids = [s["student_id"] for s in students]
+    all_documents = await db.documents.find(
+        {"student_id": {"$in": student_ids}}, 
+        {"_id": 0}
+    ).to_list(None)
+    
+    # Group documents by student_id
+    docs_dict = {}
+    for doc in all_documents:
+        sid = doc["student_id"]
+        if sid not in docs_dict:
+            docs_dict[sid] = []
+        docs_dict[sid].append(doc)
+    
+    # Build result
     result = []
     for student in students:
-        documents = await db.documents.find({"student_id": student["student_id"]}, {"_id": 0}).to_list(100)
         result.append({
             "student": student,
-            "documents": documents
+            "documents": docs_dict.get(student["student_id"], [])
         })
     
     return {"pending_students": result}
