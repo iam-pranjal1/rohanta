@@ -21,6 +21,7 @@ const Register = () => {
   const [studentData, setStudentData] = useState({
     email: '',
     password: '',
+    confirm_password: '',
     full_name: '',
     date_of_birth: '',
     phone: '',
@@ -33,12 +34,16 @@ const Register = () => {
   const [companyData, setCompanyData] = useState({
     email: '',
     password: '',
+    confirm_password: '',
     company_name: '',
     contact_person: '',
     phone: '',
     industry: '',
     website: ''
   });
+
+  // Validation errors
+  const [errors, setErrors] = useState({});
 
   const handleStudentChange = (e) => {
     setStudentData({ ...studentData, [e.target.name]: e.target.value });
