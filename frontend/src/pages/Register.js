@@ -46,11 +46,156 @@ const Register = () => {
   const [errors, setErrors] = useState({});
 
   const handleStudentChange = (e) => {
-    setStudentData({ ...studentData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setStudentData({ ...studentData, [name]: value });
+    // Clear error for this field when user types
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: '' });
+    }
   };
 
   const handleCompanyChange = (e) => {
-    setCompanyData({ ...companyData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setCompanyData({ ...companyData, [name]: value });
+    // Clear error for this field when user types
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: '' });
+    }
+  };
+
+  const validateStudentForm = () => {
+    const newErrors = {};
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!studentData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!emailRegex.test(studentData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Name validation
+    if (!studentData.full_name || studentData.full_name.trim().length < 2) {
+      newErrors.full_name = 'Full name must be at least 2 characters';
+    }
+
+    // Date of birth validation
+    if (!studentData.date_of_birth) {
+      newErrors.date_of_birth = 'Date of birth is required';
+    } else {
+      const dob = new Date(studentData.date_of_birth);
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear();
+      if (age < 10 || age > 25) {
+        newErrors.date_of_birth = 'Age must be between 10 and 25 years';
+      }
+    }
+
+    // Phone validation
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!studentData.phone) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!phoneRegex.test(studentData.phone)) {
+      newErrors.phone = 'Please enter a valid 10-digit phone number';
+    }
+
+    // Password validation
+    if (!studentData.password) {
+      newErrors.password = 'Password is required';
+    } else if (studentData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters long';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(studentData.password)) {
+      newErrors.password = 'Password must contain uppercase, lowercase, and number';
+    }
+
+    // Confirm password validation
+    if (!studentData.confirm_password) {
+      newErrors.confirm_password = 'Please confirm your password';
+    } else if (studentData.password !== studentData.confirm_password) {
+      newErrors.confirm_password = 'Passwords do not match';
+    }
+
+    // School name validation
+    if (!studentData.school_name || studentData.school_name.trim().length < 3) {
+      newErrors.school_name = 'School name must be at least 3 characters';
+    }
+
+    // Percentage validation
+    if (!studentData.class_10_percentage) {
+      newErrors.class_10_percentage = 'Class 10 percentage is required';
+    } else if (studentData.class_10_percentage < 0 || studentData.class_10_percentage > 100) {
+      newErrors.class_10_percentage = 'Percentage must be between 0 and 100';
+    }
+
+    // Address validation
+    if (!studentData.address || studentData.address.trim().length < 10) {
+      newErrors.address = 'Address must be at least 10 characters';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateCompanyForm = () => {
+    const newErrors = {};
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!companyData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!emailRegex.test(companyData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Company name validation
+    if (!companyData.company_name || companyData.company_name.trim().length < 2) {
+      newErrors.company_name = 'Company name must be at least 2 characters';
+    }
+
+    // Contact person validation
+    if (!companyData.contact_person || companyData.contact_person.trim().length < 2) {
+      newErrors.contact_person = 'Contact person name must be at least 2 characters';
+    }
+
+    // Phone validation
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!companyData.phone) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!phoneRegex.test(companyData.phone)) {
+      newErrors.phone = 'Please enter a valid 10-digit phone number';
+    }
+
+    // Password validation
+    if (!companyData.password) {
+      newErrors.password = 'Password is required';
+    } else if (companyData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters long';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(companyData.password)) {
+      newErrors.password = 'Password must contain uppercase, lowercase, and number';
+    }
+
+    // Confirm password validation
+    if (!companyData.confirm_password) {
+      newErrors.confirm_password = 'Please confirm your password';
+    } else if (companyData.password !== companyData.confirm_password) {
+      newErrors.confirm_password = 'Passwords do not match';
+    }
+
+    // Industry validation
+    if (!companyData.industry || companyData.industry.trim().length < 2) {
+      newErrors.industry = 'Industry is required';
+    }
+
+    // Website validation (optional, but validate if provided)
+    if (companyData.website && companyData.website.trim()) {
+      const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+      if (!urlRegex.test(companyData.website)) {
+        newErrors.website = 'Please enter a valid website URL';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
