@@ -29,16 +29,25 @@ const CompanyDashboard = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentPage, searchTerm, minPercentage]);
 
   const fetchData = async () => {
     try {
+      const params = new URLSearchParams({
+        page: currentPage,
+        limit: 50
+      });
+      
+      if (searchTerm) params.append('search', searchTerm);
+      if (minPercentage) params.append('min_percentage', minPercentage);
+      
       const [studentsRes, sponsoredRes] = await Promise.all([
-        api.get('/company/students'),
+        api.get(`/company/students?${params.toString()}`),
         api.get('/company/sponsored-students')
       ]);
       
       setStudents(studentsRes.data.students || []);
+      setPagination(studentsRes.data.pagination || {});
       setSponsoredStudents(sponsoredRes.data.sponsored_students || []);
     } catch (error) {
       toast({
