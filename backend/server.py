@@ -632,6 +632,53 @@ async def get_admin_stats(current_user: dict = Depends(verify_token)):
         "active_sponsorships": active_sponsorships
     }
 
+@api_router.get("/admin/sponsored-students")
+async def get_sponsored_students_admin(current_user: dict = Depends(verify_token)):
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    # Get all sponsored students
+    students = await db.students.find(
+        {"is_sponsored": True},
+        {"_id": 0, "password_hash": 0}
+    ).to_list(None)
+    
+    if not students:
+        return {"sponsored_students": []}
+    
+    student_ids = [s["student_id"] for s in students]
+    
+    # Get sponsorships
+    sponsorships = await db.sponsorships.find(
+        {"student_id": {"$in": student_ids}},
+        {"_id": 0}
+    ).to_list(None)
+    
+    sponsorships_dict = {s["student_id"]: s for s in sponsorships}
+    
+    # Get companies
+    company_ids = [s["company_id"] for s in sponsorships]
+    companies = await db.companies.find(
+        {"company_id": {"$in": company_ids}},
+        {"_id": 0, "password_hash": 0, "company_name": 1, "company_id": 1}
+    ).to_list(None)
+    
+    companies_dict = {c["company_id"]: c for c in companies}
+    
+    result = []
+    for student in students:
+        sid = student["student_id"]
+        sponsorship = sponsorships_dict.get(sid)
+        company = companies_dict.get(sponsorship["company_id"]) if sponsorship else None
+        
+        result.append({
+            "student": student,
+            "sponsorship": sponsorship,
+            "company_name": company.get("company_name") if company else "Unknown"
+        })
+    
+    return {"sponsored_students": result}
+
 # Public Routes
 @api_router.get("/public/stats")
 async def get_public_stats():
