@@ -224,10 +224,15 @@ const CompanyDashboard = () => {
                 ) : (
                   <div className="grid md:grid-cols-2 gap-6">
                     {students.map((student) => (
-                      <Card key={student.student_id} className="border-amber-100 hover:shadow-lg transition-all" data-testid={`student-card-${student.student_id}`}>
+                      <AnimatedCard key={student.student_id} className="border-amber-100 hover:shadow-xl hover-lift" data-testid={`student-card-${student.student_id}`}>
                         <CardHeader>
-                          <CardTitle className="text-lg">{student.full_name}</CardTitle>
-                          <CardDescription>{student.school_name}</CardDescription>
+                          <div className="flex items-center gap-3 mb-2">
+                            <Avatar name={student.full_name} size="lg" />
+                            <div className="flex-1">
+                              <CardTitle className="text-lg">{student.full_name}</CardTitle>
+                              <CardDescription>{student.school_name}</CardDescription>
+                            </div>
+                          </div>
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-3">
