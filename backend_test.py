@@ -5,7 +5,7 @@ from datetime import datetime
 import base64
 
 class CSREducationAPITester:
-    def __init__(self, base_url="https://edu-fundraiser.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://impact-fund-1.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.student_token = None
         self.company_token = None
