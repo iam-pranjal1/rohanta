@@ -389,11 +389,11 @@ const StudentDashboard = () => {
               </div>
             )}
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* Progress Reports */}
         {sponsorship && progressReports.length > 0 && (
-          <Card className="border-amber-100" data-testid="progress-reports-section">
+          <AnimatedCard delay={500} className="border-amber-100" data-testid="progress-reports-section">
             <CardHeader>
               <CardTitle className="font-heading text-2xl text-indigo-950">Your Progress</CardTitle>
               <CardDescription>Track your academic journey</CardDescription>
