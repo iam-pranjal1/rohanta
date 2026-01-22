@@ -302,6 +302,18 @@ const CompanyDashboard = () => {
                       </AnimatedCard>
                     ))}
                   </div>
+                  
+                  {/* Pagination */}
+                  {pagination.total > 0 && (
+                    <Pagination
+                      currentPage={pagination.page}
+                      totalPages={pagination.total_pages}
+                      totalItems={pagination.total}
+                      itemsPerPage={pagination.limit}
+                      onPageChange={setCurrentPage}
+                      className="mt-6"
+                    />
+                  )}
                 )}
               </CardContent>
             </Card>
