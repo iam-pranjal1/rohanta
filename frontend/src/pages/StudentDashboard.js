@@ -142,16 +142,21 @@ const StudentDashboard = () => {
 
         {/* Status Cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-amber-100" data-testid="verification-status-card">
-            <CardHeader>
-              <CardTitle className="text-lg">Verification Status</CardTitle>
+          <Card className="border-amber-100 shadow-md hover:shadow-lg transition-all" data-testid="verification-status-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <div className="p-2 bg-blue-100 rounded-full">
+                  <CheckCircle className="h-5 w-5 text-blue-600" />
+                </div>
+                Verification Status
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <Badge className={`text-sm px-3 py-1 ${
-                  student?.verification_status === 'verified' ? 'bg-emerald-100 text-emerald-800' :
-                  student?.verification_status === 'rejected' ? 'bg-red-100 text-red-800' :
-                  'bg-amber-100 text-amber-800'
+                <Badge className={`text-sm px-4 py-2 font-semibold ${
+                  student?.verification_status === 'verified' ? 'bg-emerald-500 text-white hover:bg-emerald-600' :
+                  student?.verification_status === 'rejected' ? 'bg-red-500 text-white hover:bg-red-600' :
+                  'bg-amber-400 text-indigo-950 hover:bg-amber-500'
                 }`}>
                   {student?.verification_status === 'verified' && <CheckCircle className="h-4 w-4 mr-1" />}
                   {student?.verification_status === 'pending' && <Clock className="h-4 w-4 mr-1" />}
@@ -159,37 +164,66 @@ const StudentDashboard = () => {
                   {student?.verification_status?.toUpperCase()}
                 </Badge>
               </div>
+              <p className="text-xs text-gray-500 mt-3">
+                {student?.verification_status === 'verified' && 'Your documents have been verified'}
+                {student?.verification_status === 'pending' && 'Admin reviewing your documents'}
+                {student?.verification_status === 'rejected' && 'Please reupload your documents'}
+              </p>
             </CardContent>
           </Card>
 
-          <Card className="border-amber-100" data-testid="sponsorship-status-card">
-            <CardHeader>
-              <CardTitle className="text-lg">Sponsorship Status</CardTitle>
+          <Card className="border-amber-100 shadow-md hover:shadow-lg transition-all" data-testid="sponsorship-status-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <div className="p-2 bg-purple-100 rounded-full">
+                  <Heart className="h-5 w-5 text-purple-600" />
+                </div>
+                Sponsorship Status
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 {student?.is_sponsored ? (
-                  <Badge className="bg-emerald-100 text-emerald-800 text-sm px-3 py-1">
+                  <Badge className="bg-emerald-500 text-white hover:bg-emerald-600 text-sm px-4 py-2 font-semibold">
                     <CheckCircle className="h-4 w-4 mr-1" />
                     SPONSORED
                   </Badge>
                 ) : (
-                  <Badge className="bg-gray-100 text-gray-800 text-sm px-3 py-1">
+                  <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 text-sm px-4 py-2 font-semibold">
                     <Clock className="h-4 w-4 mr-1" />
                     AWAITING SPONSOR
                   </Badge>
                 )}
               </div>
+              <p className="text-xs text-gray-500 mt-3">
+                {student?.is_sponsored ? 'A company is supporting your education' : 'Your profile is visible to companies'}
+              </p>
             </CardContent>
           </Card>
 
-          <Card className="border-amber-100">
-            <CardHeader>
-              <CardTitle className="text-lg">Class 10 Score</CardTitle>
+          <Card className="border-amber-100 shadow-md hover:shadow-lg transition-all">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <div className="p-2 bg-marigold-100 rounded-full">
+                  <Award className="h-5 w-5 text-marigold-600" />
+                </div>
+                Class 10 Score
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-heading font-bold text-marigold">
-                {student?.class_10_percentage}%
+              <div className="flex items-center gap-4">
+                <div className="text-4xl font-heading font-bold text-marigold">
+                  {student?.class_10_percentage}%
+                </div>
+                <div className="flex-1">
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-marigold to-amber-400" 
+                      style={{width: `${student?.class_10_percentage}%`}}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Academic Performance</p>
+                </div>
               </div>
             </CardContent>
           </Card>
