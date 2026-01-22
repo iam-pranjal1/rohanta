@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   GraduationCap, Upload, FileText, CheckCircle, Clock, XCircle, LogOut, 
   TrendingUp, Heart, Award, Target, DollarSign, BookOpen, Calendar,
-  Building2, MapPin, Phone, Mail
+  Building2, MapPin, Phone, Mail, Star, Eye, AlertCircle, PartyPopper
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -16,6 +16,7 @@ import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import AnimatedCard from '../components/AnimatedCard';
 import EnhancedProgressTimeline from '../components/EnhancedProgressTimeline';
+import InstituteSelection from '../components/InstituteSelection';
 
 const StudentDashboard = () => {
   const [profile, setProfile] = useState(null);
