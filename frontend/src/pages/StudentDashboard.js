@@ -10,6 +10,8 @@ import { Progress } from '../components/ui/progress';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../hooks/use-toast';
 import api from '../utils/api';
+import Avatar from '../components/Avatar';
+import AnimatedCard from '../components/AnimatedCard';
 
 const StudentDashboard = () => {
   const [profile, setProfile] = useState(null);
