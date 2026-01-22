@@ -821,6 +821,11 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* CSR Partners Tab */}
+          <TabsContent value="csr-partners">
+            <CSRPartners />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
