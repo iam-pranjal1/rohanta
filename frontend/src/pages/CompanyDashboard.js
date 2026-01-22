@@ -125,9 +125,9 @@ const CompanyDashboard = () => {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
-          <Card className="border-amber-100 shadow-md hover:shadow-lg transition-all">
+          <AnimatedCard delay={200} className="border-amber-100 shadow-md hover:shadow-xl hover-lift">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <div className="p-2 bg-blue-100 rounded-full">
