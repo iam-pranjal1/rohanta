@@ -118,9 +118,17 @@ Build a website for raising Corporate Social Responsibility (CSR) funds in India
   - Fund utilization progress
   - 80G certificate list with download
   - Tax benefit calculation (50% of donation)
+- **Company Leaderboard Feature** ⭐ NEW
+  - Public leaderboard on landing page
+  - Tier system: Diamond, Platinum, Gold, Silver, Bronze
+  - Impact Score formula: (Students × 100) + (Funds ÷ 1000) + (Success × 500)
+  - Top 3 podium with crown/medal icons
+  - Single company "Founding Champion" display
+  - Responsive design for 1, 2, or 3+ companies
 - **Backend Enhancements**
   - Added Institute, SuccessStory, Certificate80G, CSRPartnership models
-  - 10+ new API endpoints for all features
+  - 12+ new API endpoints for all features
+  - Public leaderboard endpoint with tier calculation
   - Enhanced student profile API with dashboard status
 
 ### January 22, 2026 (Session 1)
