@@ -8,47 +8,50 @@ Build a website for raising Corporate Social Responsibility (CSR) funds in India
 ### Core Features Implemented
 
 #### 1. User Roles
-- **Students**: Create accounts, upload verification documents, view sponsorship status and progress
-- **Companies**: Create accounts, browse verified students, sponsor students, track progress
-- **Admin**: Verify students, manage student data, add progress reports
+- **Students**: Create accounts, upload verification documents, view sponsorship status, select institutes, track progress
+- **Companies**: Create accounts, browse verified students, sponsor students, track progress, view tax compliance & 80G certificates
+- **Admin**: Verify students, manage student data, add progress reports, manage CSR partners, issue 80G certificates
 
 #### 2. Student Profile System (Enhanced)
 - Basic Info: Name, DOB, Phone, Email, School, Class 10 percentage, Address
-- **Coaching Details**:
-  - Institute name and location
-  - Coaching type (IIT-JEE, NEET, JEE+NEET, Foundation)
-  - Course duration, batch year, enrollment date
-  - Target exam date
-- **Funding Allocation**:
-  - Total amount allocated, amount per year, amount utilized
-  - Payment schedule (Monthly/Quarterly/Semester/Annual)
-  - Funding breakdown (Tuition, Study Material, Test Series, Hostel, Transport, Other)
-- **Exam Performance**:
-  - Mock test history with scores, ranks, percentiles, subject breakdown
-  - Actual exam results (JEE Main, JEE Advanced, NEET)
-  - Final result with college allotment details
+- **Coaching Details**: Institute name/location, coaching type, batch year, target exam date
+- **Funding Allocation**: Total amount, utilized, breakdown by category, payment schedule
+- **Exam Performance**: Mock tests, actual exams, final results with college allotment
 
-#### 3. Progress Tracking System
-- Monthly progress reports with:
-  - Attendance percentage
-  - Class rank
-  - Subject-wise scores
-  - Mock test results
-  - Funding utilization
-  - Teacher's comments
-- Expandable timeline UI
+#### 3. Student Dashboard States
+- **Pending Verification**: Shows application status, waiting for admin review
+- **Awaiting Sponsorship**: Profile verified, visible to companies, profile view count
+- **Pending Institute Selection**: Just sponsored, must select coaching institute from available options
+- **Enrolled**: Institute selected, full dashboard with progress tracking
 
-#### 4. Admin Management Interface
-- **Verify Students Tab**: Review pending students and approve/reject
-- **Add Progress Tab**: Add monthly progress reports for sponsored students
-- **Manage Student Tab**: Update coaching, funding, mock tests, actual exams, final results
-- **Sponsored Tab**: View all sponsored students with their profiles
+#### 4. Institute Selection Feature
+- Students can choose from available coaching institutes after sponsorship
+- Institute cards show: Name, Location, Rating, Success Rate, Features, Fee, Hostel availability
+- Budget tracking - shows remaining amount after institute selection
+- Confirmation flow with admin notification
 
-#### 5. Company Dashboard
-- Browse verified students with filters (percentage, coaching type)
-- Sponsor students
-- View sponsored students with full progress timeline
-- Track impact metrics
+#### 5. Success Stories Section
+- Public-facing section on landing page
+- Displays student achievements (AIR rank, college, branch, year)
+- Coaching institute details
+- Company sponsor information with testimonial
+- "Dreams Turned Into Reality" theme
+
+#### 6. CSR Partners Management (Admin)
+- Overview metrics: Companies, Students, Total Funds, Utilization Rate
+- Company cards with tier badges (Premium, Gold, Silver, Standard)
+- Impact score calculation
+- Fund utilization tracking
+- 80G certificate management
+- Partnership details (start/end date, tier, admin fee)
+
+#### 7. Tax & Compliance (Company)
+- Financial Summary - FY view
+- CSR Commitment vs Disbursed amounts
+- Tax Benefit (80G - 50%) calculation
+- Fund utilization breakdown
+- 80G certificate download
+- Important tax information guidance
 
 ### Technical Stack
 - **Frontend**: React, Tailwind CSS, shadcn/ui components
@@ -57,79 +60,29 @@ Build a website for raising Corporate Social Responsibility (CSR) funds in India
 - **Authentication**: JWT tokens
 - **Email**: Resend (for forgot password)
 
-### API Endpoints
+### New API Endpoints
 
-#### Authentication
-- `POST /api/auth/student/register`
-- `POST /api/auth/company/register`
-- `POST /api/auth/login`
-- `POST /api/auth/forgot-password`
-- `POST /api/auth/reset-password`
+#### Institutes
+- `GET /api/institutes` - Get available coaching institutes
+- `POST /api/admin/institutes` - Admin adds new institute
+- `PUT /api/student/select-institute/{institute_id}` - Student selects institute
 
-#### Student Routes
-- `GET /api/student/profile`
-- `POST /api/student/upload-document`
-- `PUT /api/student/update-coaching`
+#### Success Stories
+- `GET /api/public/success-stories` - Get published success stories
+- `POST /api/admin/success-stories` - Admin creates success story
+- `DELETE /api/admin/success-stories/{story_id}` - Admin deletes story
 
-#### Company Routes
-- `GET /api/company/students`
-- `POST /api/company/sponsor/{student_id}`
-- `GET /api/company/sponsored-students`
-- `GET /api/company/profile`
+#### CSR Management
+- `GET /api/admin/csr-partners` - Get all CSR partners with metrics
+- `POST /api/admin/csr-partnership/{company_id}` - Update partnership details
+- `POST /api/admin/80g-certificate/{company_id}` - Issue 80G certificate
+- `GET /api/company/tax-compliance` - Get tax compliance data
 
-#### Admin Routes
-- `GET /api/admin/stats`
-- `GET /api/admin/pending-students`
-- `GET /api/admin/sponsored-students`
-- `GET /api/admin/student/{student_id}`
-- `PUT /api/admin/verify-student/{student_id}`
-- `PUT /api/admin/bulk-verify-students`
-- `POST /api/admin/progress-report/{student_id}`
-- `PUT /api/admin/student/coaching/{student_id}`
-- `PUT /api/admin/student/funding/{student_id}`
-- `POST /api/admin/student/mock-test/{student_id}`
-- `POST /api/admin/student/actual-exam/{student_id}`
-- `PUT /api/admin/student/final-result/{student_id}`
-- `POST /api/admin/bulk-import/progress-reports`
-
-### Database Schema
-
-#### students
-```
-{
-  student_id, email, password_hash, full_name, date_of_birth, phone,
-  school_name, class_10_percentage, address, verification_status,
-  is_sponsored, created_at,
-  coaching_details: { institute_name, institute_location, coaching_type, ... },
-  funding_details: { total_amount_allocated, amount_utilized, funding_breakdown, ... },
-  exam_performance: { mock_tests: [], actual_exams: [], final_result: {} }
-}
-```
-
-#### companies
-```
-{
-  company_id, email, password_hash, company_name, contact_person,
-  phone, industry, website, total_sponsored, total_funds_allocated
-}
-```
-
-#### sponsorships
-```
-{
-  sponsorship_id, student_id, company_id, status, start_date, 
-  payment_status, rtgs_reference
-}
-```
-
-#### progress_reports
-```
-{
-  report_id, student_id, attendance_percentage, class_rank, total_in_class,
-  subject_scores, mock_test, report_text, report_month,
-  funding_utilized_this_month, created_at
-}
-```
+### Database Collections
+- `institutes` - Coaching institute details
+- `success_stories` - Published success stories
+- `csr_partnerships` - Partnership details per company
+- `certificates_80g` - Issued 80G certificates
 
 ### Test Credentials
 - **Admin**: admin@csredu.com / Admin@123
@@ -140,45 +93,67 @@ Build a website for raising Corporate Social Responsibility (CSR) funds in India
 
 ## Changelog
 
-### January 22, 2026
-- **Enhanced Data Model Implementation**
-  - Added coaching details (institute, type, duration, batch, target exam)
-  - Added funding allocation with breakdown and utilization tracking
-  - Added mock test and actual exam tracking
-  - Added final result with college allotment
-  - Created AdminStudentForms component with 5-tab interface
-  - Created StudentProfileCard component with expandable sections
-  - Created EnhancedProgressTimeline component
-  - Updated all dashboards (Student, Company, Admin)
-  - Fixed MongoDB projection error in sponsored students API
-  - All 23 backend tests passing
+### January 22, 2026 (Session 2)
+- **Success Stories Feature**
+  - Created SuccessStories component with beautiful dark theme design
+  - Displays AIR rank, college, branch, coaching details, sponsor testimonial
+  - Added to landing page before CTA section
+- **Institute Selection Feature**
+  - Created InstituteSelection component with budget tracking
+  - Students can select institute after being sponsored
+  - Shows fee, rating, success rate, features
+  - Remaining budget calculation
+- **Student Dashboard States**
+  - Added Application Status timeline (Registered → Verified → Sponsored → Enrolled)
+  - Different UI for each state
+  - Institute selection prompt when sponsored
+- **CSR Partners Tab (Admin)**
+  - Created CSRPartners component
+  - Overview metrics cards
+  - Company cards with tier badges and impact scores
+  - Expandable details (contact, 80G certs, partnership)
+- **Tax & Compliance Tab (Company)**
+  - Created TaxCompliance component
+  - Financial summary with FY
+  - Fund utilization progress
+  - 80G certificate list with download
+  - Tax benefit calculation (50% of donation)
+- **Backend Enhancements**
+  - Added Institute, SuccessStory, Certificate80G, CSRPartnership models
+  - 10+ new API endpoints for all features
+  - Enhanced student profile API with dashboard status
 
-### Previous Session
-- Core platform with Student/Company/Admin roles
-- JWT authentication
-- Forgot password with Resend email
-- UI/UX improvements with password strength indicator
-- Phase 1 scalability (pagination, search)
-- Bug fixes (N+1 query, date input UX)
+### January 22, 2026 (Session 1)
+- Enhanced Data Model Implementation
+- Coaching, Funding, and Exam Tracking
+- Admin management forms (5-tab interface)
+- Progress timeline component
 
 ---
 
 ## Roadmap
 
-### P0 - Completed
-- ✅ Enhanced data model with coaching, funding, exams
+### Completed ✅
+- Core platform with multi-role authentication
+- Enhanced data model (coaching, funding, exams)
+- Success Stories feature
+- Institute Selection flow
+- CSR Partners management
+- Tax & Compliance dashboard
 
 ### P1 - Next Priority
 - [ ] DigiLocker Integration for document verification
-- [ ] Company Dashboard scalability (lazy loading, mobile responsive)
+- [ ] 80G Certificate PDF generation and download
+- [ ] Success Story admin management UI
 
 ### P2 - Future
 - [ ] PDF export for progress reports
-- [ ] Advanced filtering system
+- [ ] Advanced analytics with charts
+- [ ] Email notifications for status changes
 - [ ] Profile picture upload
-- [ ] Charts and analytics for exam trends
 
 ### P3 - Backlog
 - [ ] Real-time notifications (WebSockets)
-- [ ] Bulk CSV import for progress reports
-- [ ] Student comparison tools
+- [ ] Bulk CSV import for institutes/students
+- [ ] Multi-language support
+- [ ] Mobile responsive optimization
