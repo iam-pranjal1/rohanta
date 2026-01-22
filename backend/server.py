@@ -600,18 +600,42 @@ async def get_student_profile(current_user: dict = Depends(verify_token)):
     sponsorship = await db.sponsorships.find_one({"student_id": current_user['user_id']}, {"_id": 0})
     reports = await db.progress_reports.find({"student_id": current_user['user_id']}, {"_id": 0}).sort("created_at", -1).to_list(100)
     
-    # Get company name if sponsored
+    # Get company name and contact if sponsored
     company_name = None
+    company_email = None
     if sponsorship:
-        company = await db.companies.find_one({"company_id": sponsorship["company_id"]}, {"_id": 0, "company_name": 1})
+        company = await db.companies.find_one({"company_id": sponsorship["company_id"]}, {"_id": 0, "company_name": 1, "email": 1, "contact_person": 1})
         company_name = company.get("company_name") if company else None
+        company_email = company.get("email") if company else None
+    
+    # Get available institutes for selection if sponsored but not enrolled
+    available_institutes = []
+    if student.get("is_sponsored") and not student.get("selected_institute"):
+        institutes = await db.institutes.find({}, {"_id": 0}).to_list(20)
+        available_institutes = institutes
+    
+    # Determine student status for dashboard state
+    status = "pending_verification"
+    if student.get("verification_status") == "verified":
+        if student.get("is_sponsored"):
+            if student.get("selected_institute"):
+                status = "enrolled"
+            else:
+                status = "pending_institute_selection"
+        else:
+            status = "awaiting_sponsorship"
+    elif student.get("verification_status") == "rejected":
+        status = "rejected"
     
     return {
         "student": student,
         "documents": documents,
         "sponsorship": sponsorship,
         "company_name": company_name,
-        "progress_reports": reports
+        "company_email": company_email,
+        "progress_reports": reports,
+        "available_institutes": available_institutes,
+        "dashboard_status": status
     }
 
 @api_router.put("/student/update-coaching")
