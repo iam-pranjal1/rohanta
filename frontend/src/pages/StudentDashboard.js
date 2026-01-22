@@ -109,10 +109,14 @@ const StudentDashboard = () => {
   const documents = profile?.documents || [];
   const sponsorship = profile?.sponsorship;
   const companyName = profile?.company_name;
+  const companyEmail = profile?.company_email;
   const progressReports = profile?.progress_reports || [];
   const coaching = student?.coaching_details;
   const funding = student?.funding_details;
   const examPerformance = student?.exam_performance;
+  const availableInstitutes = profile?.available_institutes || [];
+  const dashboardStatus = profile?.dashboard_status || 'pending_verification';
+  const selectedInstitute = student?.selected_institute;
 
   const getDocumentStatus = (docType) => {
     const doc = documents.find(d => d.document_type === docType);
