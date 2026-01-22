@@ -158,47 +158,71 @@ const AdminDashboard = () => {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-white">
-            <CardHeader>
-              <CardTitle className="text-sm">Total Students</CardTitle>
+          <Card className="bg-white shadow-md hover:shadow-lg transition-all">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <div className="p-2 bg-blue-100 rounded-full">
+                  <Users className="h-4 w-4 text-blue-600" />
+                </div>
+                Total Students
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-heading font-bold text-indigo-950">
+              <div className="text-3xl font-heading font-bold text-blue-600">
                 {stats.total_students || 0}
               </div>
+              <p className="text-xs text-gray-500 mt-1">Registered</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white">
-            <CardHeader>
-              <CardTitle className="text-sm">Verified Students</CardTitle>
+          <Card className="bg-white shadow-md hover:shadow-lg transition-all">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <div className="p-2 bg-emerald-100 rounded-full">
+                  <CheckCircle className="h-4 w-4 text-emerald-600" />
+                </div>
+                Verified Students
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-heading font-bold text-emerald-600">
                 {stats.verified_students || 0}
               </div>
+              <p className="text-xs text-gray-500 mt-1">Approved</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white">
-            <CardHeader>
-              <CardTitle className="text-sm">Pending Verification</CardTitle>
+          <Card className="bg-white shadow-md hover:shadow-lg transition-all">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <div className="p-2 bg-amber-100 rounded-full">
+                  <Clock className="h-4 w-4 text-amber-600" />
+                </div>
+                Pending Verification
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-heading font-bold text-amber-500">
+              <div className="text-3xl font-heading font-bold text-amber-600">
                 {stats.pending_students || 0}
               </div>
+              <p className="text-xs text-gray-500 mt-1">Awaiting Review</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white">
-            <CardHeader>
-              <CardTitle className="text-sm">Sponsored</CardTitle>
+          <Card className="bg-white shadow-md hover:shadow-lg transition-all">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <div className="p-2 bg-rose-100 rounded-full">
+                  <Heart className="h-4 w-4 text-rose-600" />
+                </div>
+                Sponsored
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-heading font-bold text-marigold">
+              <div className="text-3xl font-heading font-bold text-rose-600">
                 {stats.sponsored_students || 0}
               </div>
+              <p className="text-xs text-gray-500 mt-1">Active</p>
             </CardContent>
           </Card>
         </div>
