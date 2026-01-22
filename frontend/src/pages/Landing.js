@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import axios from 'axios';
 import SuccessStories from '../components/SuccessStories';
+import CompanyLeaderboard from '../components/CompanyLeaderboard';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
 
