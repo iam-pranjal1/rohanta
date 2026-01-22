@@ -361,93 +361,107 @@ const AdminDashboard = () => {
                 <CardDescription>Upload progress data for sponsored students</CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleAddReport} className="space-y-6">
-                  <div>
-                    <Label htmlFor="student_id">Select Student</Label>
-                    <Input
-                      id="student_id"
-                      placeholder="Enter Student ID"
-                      value={selectedStudent || ''}
-                      onChange={(e) => setSelectedStudent(e.target.value)}
-                      required
-                      className="mt-1"
-                      data-testid="student-id-input"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Enter the student ID from sponsored students list</p>
+                {sponsoredStudents.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-2">No sponsored students yet</p>
+                    <p className="text-sm text-gray-500">Students must be verified and sponsored before adding progress reports</p>
                   </div>
+                ) : (
+                  <form onSubmit={handleAddReport} className="space-y-6">
+                    <div>
+                      <Label htmlFor="student_select">Select Student</Label>
+                      <select
+                        id="student_select"
+                        value={selectedStudent || ''}
+                        onChange={(e) => setSelectedStudent(e.target.value)}
+                        required
+                        className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-marigold focus:outline-none focus:ring-2 focus:ring-marigold"
+                        data-testid="student-select"
+                      >
+                        <option value="">-- Select a sponsored student --</option>
+                        {sponsoredStudents.map(({ student, company_name }) => (
+                          <option key={student.student_id} value={student.student_id}>
+                            {student.full_name} - {student.school_name} (Sponsored by: {company_name})
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">Choose from verified and sponsored students</p>
+                    </div>
 
-                  <div>
-                    <Label htmlFor="report_month">Report Month</Label>
-                    <Input
-                      id="report_month"
-                      type="month"
-                      value={reportData.report_month}
-                      onChange={(e) => setReportData({...reportData, report_month: e.target.value})}
-                      required
-                      className="mt-1"
-                      data-testid="report-month"
-                    />
-                  </div>
+                    <div>
+                      <Label htmlFor="report_month">Report Month</Label>
+                      <Input
+                        id="report_month"
+                        type="month"
+                        value={reportData.report_month}
+                        onChange={(e) => setReportData({...reportData, report_month: e.target.value})}
+                        required
+                        className="mt-1"
+                        data-testid="report-month"
+                      />
+                    </div>
 
-                  <div>
-                    <Label htmlFor="attendance">Attendance Percentage</Label>
-                    <Input
-                      id="attendance"
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      placeholder="85.5"
-                      value={reportData.attendance_percentage}
-                      onChange={(e) => setReportData({...reportData, attendance_percentage: e.target.value})}
-                      required
-                      className="mt-1"
-                      data-testid="attendance-input"
-                    />
-                  </div>
+                    <div>
+                      <Label htmlFor="attendance">Attendance Percentage</Label>
+                      <Input
+                        id="attendance"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        placeholder="85.5"
+                        value={reportData.attendance_percentage}
+                        onChange={(e) => setReportData({...reportData, attendance_percentage: e.target.value})}
+                        required
+                        className="mt-1"
+                        data-testid="attendance-input"
+                      />
+                    </div>
 
-                  <div>
-                    <Label htmlFor="test_scores">Test Scores (JSON format)</Label>
-                    <Textarea
-                      id="test_scores"
-                      placeholder='{"Physics": 85, "Chemistry": 90, "Mathematics": 95}'
-                      value={JSON.stringify(reportData.test_scores)}
-                      onChange={(e) => {
-                        try {
-                          setReportData({...reportData, test_scores: JSON.parse(e.target.value)});
-                        } catch (err) {
-                          // Invalid JSON, ignore
-                        }
-                      }}
-                      className="mt-1 font-mono text-sm"
-                      rows={3}
-                      data-testid="test-scores-input"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Enter test scores in JSON format</p>
-                  </div>
+                    <div>
+                      <Label htmlFor="test_scores">Test Scores (JSON format)</Label>
+                      <Textarea
+                        id="test_scores"
+                        placeholder='{"Physics": 85, "Chemistry": 90, "Mathematics": 95}'
+                        value={JSON.stringify(reportData.test_scores)}
+                        onChange={(e) => {
+                          try {
+                            setReportData({...reportData, test_scores: JSON.parse(e.target.value)});
+                          } catch (err) {
+                            // Invalid JSON, ignore
+                          }
+                        }}
+                        className="mt-1 font-mono text-sm"
+                        rows={3}
+                        data-testid="test-scores-input"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Enter test scores in JSON format</p>
+                    </div>
 
-                  <div>
-                    <Label htmlFor="report_text">Report Comments</Label>
-                    <Textarea
-                      id="report_text"
-                      placeholder="Student is showing excellent progress in all subjects..."
-                      value={reportData.report_text}
-                      onChange={(e) => setReportData({...reportData, report_text: e.target.value})}
-                      className="mt-1"
-                      rows={4}
-                      data-testid="report-text"
-                    />
-                  </div>
+                    <div>
+                      <Label htmlFor="report_text">Report Comments</Label>
+                      <Textarea
+                        id="report_text"
+                        placeholder="Student is showing excellent progress in all subjects..."
+                        value={reportData.report_text}
+                        onChange={(e) => setReportData({...reportData, report_text: e.target.value})}
+                        className="mt-1"
+                        rows={4}
+                        data-testid="report-text"
+                      />
+                    </div>
 
-                  <Button 
-                    type="submit"
-                    className="w-full bg-indigo-950 hover:bg-indigo-900 text-white font-semibold"
-                    data-testid="submit-report-btn"
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Add Progress Report
-                  </Button>
-                </form>
+                    <Button 
+                      type="submit"
+                      className="w-full bg-indigo-950 hover:bg-indigo-900 text-white font-semibold"
+                      data-testid="submit-report-btn"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Add Progress Report
+                    </Button>
+                  </form>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
