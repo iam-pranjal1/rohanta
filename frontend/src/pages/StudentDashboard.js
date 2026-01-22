@@ -444,12 +444,12 @@ const StudentDashboard = () => {
                 ))}
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         )}
 
         {/* Empty State for No Sponsor */}
         {!sponsorship && student?.verification_status === 'verified' && (
-          <Card className="border-amber-100 bg-gradient-to-br from-amber-50 to-white">
+          <AnimatedCard delay={500} className="border-amber-100 bg-gradient-to-br from-amber-50 to-white">
             <CardContent className="text-center py-12">
               <Clock className="h-16 w-16 text-marigold mx-auto mb-4" />
               <h3 className="font-heading text-2xl font-bold text-indigo-950 mb-2">Awaiting Sponsorship</h3>
