@@ -269,15 +269,31 @@ const CompanyDashboard = () => {
               </CardHeader>
               <CardContent>
                 {sponsoredStudents.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-4">You haven't sponsored any students yet</p>
+                  <div className="text-center py-16">
+                    <div className="w-24 h-24 bg-gradient-to-br from-rose-100 to-pink-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Heart className="h-12 w-12 text-rose-500" />
+                    </div>
+                    <h3 className="text-xl font-heading font-bold text-indigo-950 mb-2">
+                      Start Your Impact Journey
+                    </h3>
+                    <p className="text-gray-600 max-w-md mx-auto mb-6">
+                      You haven't sponsored any students yet. Be the catalyst that transforms a deserving student's future.
+                    </p>
                     <Button 
                       onClick={() => document.querySelector('[value="browse"]').click()}
-                      className="bg-marigold text-indigo-950 hover:bg-amber-400 font-bold rounded-full"
+                      className="bg-marigold text-indigo-950 hover:bg-amber-400 font-bold rounded-full px-8 py-3 shadow-lg hover:shadow-xl transition-all"
                     >
+                      <Heart className="h-4 w-4 mr-2" />
                       Browse Students
                     </Button>
+                    <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
+                      <p className="text-sm font-semibold text-blue-900 mb-2">
+                        Did You Know?
+                      </p>
+                      <p className="text-xs text-blue-800">
+                        Companies like yours have sponsored over {students.length + sponsoredStudents.length} students, helping them achieve their IIT/NEET dreams.
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-6">
