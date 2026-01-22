@@ -422,17 +422,53 @@ async def get_student_profile(current_user: dict = Depends(verify_token)):
 
 # Company Routes
 @api_router.get("/company/students")
-async def get_students_list(current_user: dict = Depends(verify_token)):
+async def get_students_list(
+    current_user: dict = Depends(verify_token),
+    page: int = 1,
+    limit: int = 50,
+    search: str = None,
+    min_percentage: float = None
+):
     if current_user['role'] != UserRole.COMPANY:
         raise HTTPException(status_code=403, detail="Unauthorized")
     
-    # Get verified students who are not sponsored
-    students = await db.students.find(
-        {"verification_status": VerificationStatus.VERIFIED, "is_sponsored": False},
-        {"_id": 0, "password_hash": 0}
-    ).to_list(1000)
+    # Build query
+    query = {"verification_status": VerificationStatus.VERIFIED, "is_sponsored": False}
     
-    return {"students": students}
+    # Add search filter
+    if search:
+        query["$or"] = [
+            {"full_name": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}},
+            {"school_name": {"$regex": search, "$options": "i"}}
+        ]
+    
+    # Add percentage filter
+    if min_percentage:
+        query["class_10_percentage"] = {"$gte": min_percentage}
+    
+    # Get total count
+    total = await db.students.count_documents(query)
+    
+    # Calculate pagination
+    skip = (page - 1) * limit
+    total_pages = (total + limit - 1) // limit
+    
+    # Get paginated students
+    students = await db.students.find(
+        query,
+        {"_id": 0, "password_hash": 0}
+    ).skip(skip).limit(limit).to_list(None)
+    
+    return {
+        "students": students,
+        "pagination": {
+            "page": page,
+            "limit": limit,
+            "total": total,
+            "total_pages": total_pages
+        }
+    }
 
 @api_router.post("/company/sponsor/{student_id}")
 async def sponsor_student(student_id: str, current_user: dict = Depends(verify_token)):
