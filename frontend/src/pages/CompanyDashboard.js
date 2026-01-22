@@ -261,59 +261,61 @@ const CompanyDashboard = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {students.map((student) => (
-                      <AnimatedCard key={student.student_id} className="border-amber-100 hover:shadow-xl hover-lift" data-testid={`student-card-${student.student_id}`}>
-                        <CardHeader>
-                          <div className="flex items-center gap-3 mb-2">
-                            <Avatar name={student.full_name} size="lg" />
-                            <div className="flex-1">
-                              <CardTitle className="text-lg">{student.full_name}</CardTitle>
-                              <CardDescription>{student.school_name}</CardDescription>
+                  <>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {students.map((student) => (
+                        <AnimatedCard key={student.student_id} className="border-amber-100 hover:shadow-xl hover-lift" data-testid={`student-card-${student.student_id}`}>
+                          <CardHeader>
+                            <div className="flex items-center gap-3 mb-2">
+                              <Avatar name={student.full_name} size="lg" />
+                              <div className="flex-1">
+                                <CardTitle className="text-lg">{student.full_name}</CardTitle>
+                                <CardDescription>{student.school_name}</CardDescription>
+                              </div>
                             </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-600">Class 10 Score:</span>
-                              <span className="font-semibold text-marigold">{student.class_10_percentage}%</span>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">Class 10 Score:</span>
+                                <span className="font-semibold text-marigold">{student.class_10_percentage}%</span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">Email:</span>
+                                <span className="text-sm font-medium">{student.email}</span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">Phone:</span>
+                                <span className="text-sm font-medium">{student.phone}</span>
+                              </div>
+                              <div className="pt-4">
+                                <Button 
+                                  onClick={() => handleSponsor(student.student_id)}
+                                  className="w-full bg-marigold text-indigo-950 hover:bg-amber-400 font-bold rounded-full"
+                                  data-testid={`sponsor-btn-${student.student_id}`}
+                                >
+                                  <Heart className="h-4 w-4 mr-2" />
+                                  Sponsor This Student
+                                </Button>
+                              </div>
                             </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-600">Email:</span>
-                              <span className="text-sm font-medium">{student.email}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-600">Phone:</span>
-                              <span className="text-sm font-medium">{student.phone}</span>
-                            </div>
-                            <div className="pt-4">
-                              <Button 
-                                onClick={() => handleSponsor(student.student_id)}
-                                className="w-full bg-marigold text-indigo-950 hover:bg-amber-400 font-bold rounded-full"
-                                data-testid={`sponsor-btn-${student.student_id}`}
-                              >
-                                <Heart className="h-4 w-4 mr-2" />
-                                Sponsor This Student
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </AnimatedCard>
-                    ))}
-                  </div>
-                  
-                  {/* Pagination */}
-                  {pagination.total > 0 && (
-                    <Pagination
-                      currentPage={pagination.page}
-                      totalPages={pagination.total_pages}
-                      totalItems={pagination.total}
-                      itemsPerPage={pagination.limit}
-                      onPageChange={setCurrentPage}
-                      className="mt-6"
-                    />
-                  )}
+                          </CardContent>
+                        </AnimatedCard>
+                      ))}
+                    </div>
+                    
+                    {/* Pagination */}
+                    {pagination.total > 0 && (
+                      <Pagination
+                        currentPage={pagination.page}
+                        totalPages={pagination.total_pages}
+                        totalItems={pagination.total}
+                        itemsPerPage={pagination.limit}
+                        onPageChange={setCurrentPage}
+                        className="mt-6"
+                      />
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
