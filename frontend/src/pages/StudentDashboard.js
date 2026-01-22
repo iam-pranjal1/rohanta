@@ -206,6 +206,105 @@ const StudentDashboard = () => {
           </div>
         </div>
 
+        {/* Status Timeline Banner */}
+        <AnimatedCard delay={50} className="mb-8 border-amber-100 shadow-md">
+          <CardContent className="p-6">
+            <h3 className="font-heading text-lg font-bold text-indigo-950 mb-4">Application Status</h3>
+            <div className="flex items-center justify-between">
+              {/* Step 1: Registered */}
+              <div className="flex flex-col items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  true ? 'bg-emerald-500' : 'bg-gray-200'
+                }`}>
+                  <CheckCircle className="h-5 w-5 text-white" />
+                </div>
+                <p className="text-xs mt-2 text-gray-600">Registered</p>
+              </div>
+              <div className={`flex-1 h-1 mx-2 ${
+                dashboardStatus !== 'pending_verification' ? 'bg-emerald-500' : 'bg-gray-200'
+              }`}></div>
+              
+              {/* Step 2: Verified */}
+              <div className="flex flex-col items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  dashboardStatus !== 'pending_verification' ? 'bg-emerald-500' : 
+                  dashboardStatus === 'pending_verification' ? 'bg-amber-500 animate-pulse' : 'bg-gray-200'
+                }`}>
+                  {dashboardStatus === 'pending_verification' ? (
+                    <Clock className="h-5 w-5 text-white" />
+                  ) : (
+                    <CheckCircle className="h-5 w-5 text-white" />
+                  )}
+                </div>
+                <p className="text-xs mt-2 text-gray-600">Verified</p>
+              </div>
+              <div className={`flex-1 h-1 mx-2 ${
+                student?.is_sponsored ? 'bg-emerald-500' : 'bg-gray-200'
+              }`}></div>
+              
+              {/* Step 3: Sponsored */}
+              <div className="flex flex-col items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  student?.is_sponsored ? 'bg-emerald-500' : 
+                  dashboardStatus === 'awaiting_sponsorship' ? 'bg-amber-500 animate-pulse' : 'bg-gray-200'
+                }`}>
+                  {student?.is_sponsored ? (
+                    <Heart className="h-5 w-5 text-white" />
+                  ) : (
+                    <Clock className="h-5 w-5 text-white" />
+                  )}
+                </div>
+                <p className="text-xs mt-2 text-gray-600">Sponsored</p>
+              </div>
+              <div className={`flex-1 h-1 mx-2 ${
+                selectedInstitute ? 'bg-emerald-500' : 'bg-gray-200'
+              }`}></div>
+              
+              {/* Step 4: Enrolled */}
+              <div className="flex flex-col items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  selectedInstitute ? 'bg-emerald-500' : 
+                  dashboardStatus === 'pending_institute_selection' ? 'bg-amber-500 animate-pulse' : 'bg-gray-200'
+                }`}>
+                  {selectedInstitute ? (
+                    <GraduationCap className="h-5 w-5 text-white" />
+                  ) : (
+                    <Building2 className="h-5 w-5 text-white" />
+                  )}
+                </div>
+                <p className="text-xs mt-2 text-gray-600">Enrolled</p>
+              </div>
+            </div>
+          </CardContent>
+        </AnimatedCard>
+
+        {/* Institute Selection - Show when sponsored but no institute selected */}
+        {dashboardStatus === 'pending_institute_selection' && availableInstitutes.length > 0 && (
+          <AnimatedCard delay={100} className="mb-8 border-emerald-200 bg-gradient-to-r from-emerald-50 to-white">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <PartyPopper className="h-8 w-8 text-emerald-500" />
+                <div>
+                  <CardTitle className="font-heading text-2xl text-indigo-950">
+                    Congratulations! You've Been Sponsored! 🎉
+                  </CardTitle>
+                  <CardDescription>
+                    Sponsored by <span className="font-semibold text-emerald-600">{companyName}</span> 
+                    {companyEmail && <span className="text-gray-500"> • {companyEmail}</span>}
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <InstituteSelection 
+                institutes={availableInstitutes} 
+                onSelect={() => fetchProfile()}
+                fundingAllocated={funding?.total_amount_allocated}
+              />
+            </CardContent>
+          </AnimatedCard>
+        )}
+
         {/* Status Cards */}
         <div className="grid md:grid-cols-4 gap-4 mb-8">
           <AnimatedCard delay={100} className="border-amber-100 shadow-md hover:shadow-xl hover-lift" data-testid="verification-status-card">
