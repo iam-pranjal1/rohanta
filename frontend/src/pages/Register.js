@@ -200,6 +200,19 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form
+    const isValid = userType === 'student' ? validateStudentForm() : validateCompanyForm();
+    
+    if (!isValid) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fix the errors in the form before submitting",
+      });
+      return;
+    }
+
     setLoading(true);
 
     let result;
@@ -227,7 +240,7 @@ const Register = () => {
       toast({
         variant: "destructive",
         title: "Registration Failed",
-        description: result.error,
+        description: result.error || "Unable to create account. Please try again.",
       });
     }
     
