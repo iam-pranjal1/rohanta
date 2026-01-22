@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Users, LogOut, Heart, TrendingUp, FileText, CheckCircle, Star, Info, Filter } from 'lucide-react';
+import { 
+  Building2, Users, LogOut, Heart, TrendingUp, FileText, CheckCircle, 
+  Star, Info, Filter, Target, BookOpen, DollarSign, Award,
+  ChevronDown, ChevronUp
+} from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -13,7 +17,8 @@ import Avatar from '../components/Avatar';
 import AnimatedCard from '../components/AnimatedCard';
 import SearchBar from '../components/SearchBar';
 import Pagination from '../components/Pagination';
-import ProgressTimeline from '../components/ProgressTimeline';
+import EnhancedProgressTimeline from '../components/EnhancedProgressTimeline';
+import StudentProfileCard from '../components/StudentProfileCard';
 
 const CompanyDashboard = () => {
   const [students, setStudents] = useState([]);
@@ -21,15 +26,17 @@ const CompanyDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [minPercentage, setMinPercentage] = useState('');
+  const [coachingType, setCoachingType] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({});
+  const [expandedStudents, setExpandedStudents] = useState({});
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchData();
-  }, [currentPage, searchTerm, minPercentage]);
+  }, [currentPage, searchTerm, minPercentage, coachingType]);
 
   const fetchData = async () => {
     try {
@@ -40,6 +47,7 @@ const CompanyDashboard = () => {
       
       if (searchTerm) params.append('search', searchTerm);
       if (minPercentage) params.append('min_percentage', minPercentage);
+      if (coachingType) params.append('coaching_type', coachingType);
       
       const [studentsRes, sponsoredRes] = await Promise.all([
         api.get(`/company/students?${params.toString()}`),
@@ -84,6 +92,26 @@ const CompanyDashboard = () => {
     navigate('/');
   };
 
+  const toggleStudentExpand = (studentId) => {
+    setExpandedStudents(prev => ({
+      ...prev,
+      [studentId]: !prev[studentId]
+    }));
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amount || 0);
+  };
+
+  // Calculate total stats
+  const totalFundsAllocated = sponsoredStudents.reduce((sum, { student }) => {
+    return sum + (student?.funding_details?.total_amount_allocated || 0);
+  }, 0);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 to-white flex items-center justify-center">
@@ -120,80 +148,73 @@ const CompanyDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-4 gap-4 mb-8">
           <AnimatedCard delay={100} className="border-amber-100 shadow-md hover:shadow-xl hover-lift">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle className="text-sm flex items-center gap-2">
                 <div className="p-2 bg-emerald-100 rounded-full">
-                  <Heart className="h-5 w-5 text-emerald-600" />
+                  <Heart className="h-4 w-4 text-emerald-600" />
                 </div>
-                Total Sponsored
+                Students Sponsored
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-4xl font-heading font-bold text-emerald-600">
-                  {sponsoredStudents.length}
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-500">Students</p>
-                  <p className="text-xs text-emerald-600 font-semibold">Active</p>
-                </div>
+              <div className="text-3xl font-heading font-bold text-emerald-600">
+                {sponsoredStudents.length}
               </div>
+              <p className="text-xs text-gray-500">Active sponsorships</p>
             </CardContent>
           </AnimatedCard>
 
           <AnimatedCard delay={200} className="border-amber-100 shadow-md hover:shadow-xl hover-lift">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle className="text-sm flex items-center gap-2">
                 <div className="p-2 bg-blue-100 rounded-full">
-                  <Users className="h-5 w-5 text-blue-600" />
+                  <Users className="h-4 w-4 text-blue-600" />
                 </div>
                 Available Students
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-4xl font-heading font-bold text-blue-600">
-                  {students.length}
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-500">Students</p>
-                  <p className="text-xs text-blue-600 font-semibold">Verified</p>
-                </div>
+              <div className="text-3xl font-heading font-bold text-blue-600">
+                {pagination.total || 0}
               </div>
+              <p className="text-xs text-gray-500">Verified & awaiting</p>
             </CardContent>
           </AnimatedCard>
 
-          <AnimatedCard delay={300} className="border-amber-100 shadow-md hover:shadow-xl hover-lift relative group">
+          <AnimatedCard delay={300} className="border-amber-100 shadow-md hover:shadow-xl hover-lift">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <div className="p-2 bg-amber-100 rounded-full">
-                  <Star className="h-5 w-5 text-amber-600" />
+              <CardTitle className="text-sm flex items-center gap-2">
+                <div className="p-2 bg-purple-100 rounded-full">
+                  <DollarSign className="h-4 w-4 text-purple-600" />
                 </div>
-                Impact Score
-                <div className="relative">
-                  <Info className="h-4 w-4 text-gray-400 cursor-help" />
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-indigo-950 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                    <p className="font-semibold mb-1">Impact Score Calculation:</p>
-                    <p>100 points per sponsored student. Higher score shows greater educational impact.</p>
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
-                      <div className="border-4 border-transparent border-t-indigo-950"></div>
-                    </div>
-                  </div>
-                </div>
+                Total Funds Allocated
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-4xl font-heading font-bold text-amber-600">
-                  {sponsoredStudents.length * 100}
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-500">Points</p>
-                  <p className="text-xs text-amber-600 font-semibold">Growing</p>
-                </div>
+              <div className="text-2xl font-heading font-bold text-purple-600">
+                {formatCurrency(totalFundsAllocated)}
               </div>
+              <p className="text-xs text-gray-500">CSR investment</p>
+            </CardContent>
+          </AnimatedCard>
+
+          <AnimatedCard delay={400} className="border-amber-100 shadow-md hover:shadow-xl hover-lift relative group">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <div className="p-2 bg-amber-100 rounded-full">
+                  <Star className="h-4 w-4 text-amber-600" />
+                </div>
+                Impact Score
+                <Info className="h-4 w-4 text-gray-400 cursor-help" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-heading font-bold text-amber-600">
+                {sponsoredStudents.length * 100}
+              </div>
+              <p className="text-xs text-gray-500">100 pts per student</p>
             </CardContent>
           </AnimatedCard>
         </div>
@@ -206,10 +227,11 @@ const CompanyDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="sponsored" className="data-[state=active]:bg-marigold data-[state=active]:text-indigo-950" data-testid="sponsored-students-tab">
               <Heart className="h-4 w-4 mr-2" />
-              Sponsored Students
+              Sponsored ({sponsoredStudents.length})
             </TabsTrigger>
           </TabsList>
 
+          {/* Browse Students Tab */}
           <TabsContent value="browse">
             <Card className="border-amber-100">
               <CardHeader>
@@ -219,23 +241,33 @@ const CompanyDashboard = () => {
               <CardContent>
                 {/* Search and Filters */}
                 <div className="mb-6 space-y-4">
-                  <div className="flex gap-4">
+                  <div className="flex flex-wrap gap-4">
                     <SearchBar
                       value={searchTerm}
                       onChange={setSearchTerm}
-                      placeholder="Search by name, email, or school..."
-                      className="flex-1"
+                      placeholder="Search by name, email, school, institute..."
+                      className="flex-1 min-w-[200px]"
                     />
                     <select
                       value={minPercentage}
                       onChange={(e) => setMinPercentage(e.target.value)}
                       className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-marigold"
                     >
-                      <option value="">All Percentages</option>
-                      <option value="90">90% and above</option>
-                      <option value="80">80% and above</option>
-                      <option value="70">70% and above</option>
-                      <option value="60">60% and above</option>
+                      <option value="">All Scores</option>
+                      <option value="90">90%+ Score</option>
+                      <option value="80">80%+ Score</option>
+                      <option value="70">70%+ Score</option>
+                    </select>
+                    <select
+                      value={coachingType}
+                      onChange={(e) => setCoachingType(e.target.value)}
+                      className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-marigold"
+                    >
+                      <option value="">All Coaching</option>
+                      <option value="IIT-JEE">IIT-JEE</option>
+                      <option value="NEET">NEET</option>
+                      <option value="JEE+NEET">JEE+NEET</option>
+                      <option value="Foundation">Foundation</option>
                     </select>
                   </div>
                 </div>
@@ -246,62 +278,105 @@ const CompanyDashboard = () => {
                       <Users className="h-12 w-12 text-amber-600" />
                     </div>
                     <h3 className="text-xl font-heading font-bold text-indigo-950 mb-2">
-                      No Students Available Yet
+                      No Students Found
                     </h3>
-                    <p className="text-gray-600 max-w-md mx-auto mb-6">
-                      Students are currently being verified by our admin team. Once approved, they'll appear here for sponsorship.
+                    <p className="text-gray-600 max-w-md mx-auto">
+                      {searchTerm || minPercentage || coachingType 
+                        ? "Try adjusting your filters to find more students."
+                        : "Students are currently being verified. Check back soon!"}
                     </p>
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md mx-auto">
-                      <p className="text-sm text-amber-800 font-semibold mb-2">
-                        Get Notified
-                      </p>
-                      <p className="text-xs text-amber-700">
-                        We'll send you an email as soon as verified students become available for sponsorship.
-                      </p>
-                    </div>
                   </div>
                 ) : (
                   <>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {students.map((student) => (
-                        <AnimatedCard key={student.student_id} className="border-amber-100 hover:shadow-xl hover-lift" data-testid={`student-card-${student.student_id}`}>
-                          <CardHeader>
-                            <div className="flex items-center gap-3 mb-2">
-                              <Avatar name={student.full_name} size="lg" />
-                              <div className="flex-1">
-                                <CardTitle className="text-lg">{student.full_name}</CardTitle>
-                                <CardDescription>{student.school_name}</CardDescription>
+                    <div className="space-y-4">
+                      {students.map((student) => {
+                        const isExpanded = expandedStudents[student.student_id];
+                        const coaching = student.coaching_details;
+                        
+                        return (
+                          <AnimatedCard 
+                            key={student.student_id} 
+                            className="border-amber-100 hover:shadow-xl transition-all" 
+                            data-testid={`student-card-${student.student_id}`}
+                          >
+                            {/* Collapsed View */}
+                            <div className="p-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                  <Avatar name={student.full_name} size="lg" />
+                                  <div>
+                                    <h3 className="font-semibold text-lg text-indigo-950">{student.full_name}</h3>
+                                    <p className="text-sm text-gray-600">{student.school_name}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <Badge className="bg-amber-100 text-amber-800">
+                                        <Award className="h-3 w-3 mr-1" />
+                                        {student.class_10_percentage}%
+                                      </Badge>
+                                      {coaching && (
+                                        <Badge className="bg-indigo-100 text-indigo-800">
+                                          <Target className="h-3 w-3 mr-1" />
+                                          {coaching.coaching_type}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-3">
+                                  <Button 
+                                    onClick={() => handleSponsor(student.student_id)}
+                                    className="bg-marigold text-indigo-950 hover:bg-amber-400 font-bold rounded-full"
+                                    data-testid={`sponsor-btn-${student.student_id}`}
+                                  >
+                                    <Heart className="h-4 w-4 mr-2" />
+                                    Sponsor
+                                  </Button>
+                                  <button
+                                    onClick={() => toggleStudentExpand(student.student_id)}
+                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                  >
+                                    {isExpanded ? (
+                                      <ChevronUp className="h-5 w-5 text-gray-500" />
+                                    ) : (
+                                      <ChevronDown className="h-5 w-5 text-gray-500" />
+                                    )}
+                                  </button>
+                                </div>
                               </div>
+
+                              {/* Expanded Details */}
+                              {isExpanded && (
+                                <div className="mt-4 pt-4 border-t border-gray-100 animate-fade-in">
+                                  <div className="grid md:grid-cols-2 gap-6">
+                                    <div>
+                                      <h4 className="font-semibold text-gray-700 mb-2">Contact & Basic Info</h4>
+                                      <div className="space-y-1 text-sm">
+                                        <p><span className="text-gray-500">Email:</span> {student.email}</p>
+                                        <p><span className="text-gray-500">Phone:</span> {student.phone}</p>
+                                        <p><span className="text-gray-500">DOB:</span> {student.date_of_birth}</p>
+                                        <p><span className="text-gray-500">Address:</span> {student.address}</p>
+                                      </div>
+                                    </div>
+                                    
+                                    {coaching && (
+                                      <div>
+                                        <h4 className="font-semibold text-gray-700 mb-2">Coaching Details</h4>
+                                        <div className="space-y-1 text-sm">
+                                          <p><span className="text-gray-500">Institute:</span> {coaching.institute_name}</p>
+                                          <p><span className="text-gray-500">Location:</span> {coaching.institute_location}</p>
+                                          <p><span className="text-gray-500">Duration:</span> {coaching.course_duration}</p>
+                                          <p><span className="text-gray-500">Batch:</span> {coaching.batch_year}</p>
+                                          <p><span className="text-gray-500">Target:</span> {coaching.expected_exam_date}</p>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-3">
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">Class 10 Score:</span>
-                                <span className="font-semibold text-marigold">{student.class_10_percentage}%</span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">Email:</span>
-                                <span className="text-sm font-medium">{student.email}</span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">Phone:</span>
-                                <span className="text-sm font-medium">{student.phone}</span>
-                              </div>
-                              <div className="pt-4">
-                                <Button 
-                                  onClick={() => handleSponsor(student.student_id)}
-                                  className="w-full bg-marigold text-indigo-950 hover:bg-amber-400 font-bold rounded-full"
-                                  data-testid={`sponsor-btn-${student.student_id}`}
-                                >
-                                  <Heart className="h-4 w-4 mr-2" />
-                                  Sponsor This Student
-                                </Button>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </AnimatedCard>
-                      ))}
+                          </AnimatedCard>
+                        );
+                      })}
                     </div>
                     
                     {/* Pagination */}
@@ -321,6 +396,7 @@ const CompanyDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Sponsored Students Tab */}
           <TabsContent value="sponsored">
             <Card className="border-amber-100">
               <CardHeader>
@@ -346,63 +422,23 @@ const CompanyDashboard = () => {
                       <Heart className="h-4 w-4 mr-2" />
                       Browse Students
                     </Button>
-                    <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
-                      <p className="text-sm font-semibold text-blue-900 mb-2">
-                        Did You Know?
-                      </p>
-                      <p className="text-xs text-blue-800">
-                        Companies like yours have sponsored over {students.length + sponsoredStudents.length} students, helping them achieve their IIT/NEET dreams.
-                      </p>
-                    </div>
                   </div>
                 ) : (
                   <div className="space-y-6">
                     {sponsoredStudents.map(({ student, sponsorship, progress_reports }) => (
-                      <AnimatedCard key={student.student_id} className="border-amber-100 hover:shadow-xl hover-lift" data-testid={`sponsored-card-${student.student_id}`}>
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Avatar name={student.full_name} size="lg" />
-                              <div>
-                                <CardTitle className="text-xl">{student.full_name}</CardTitle>
-                                <CardDescription>{student.school_name}</CardDescription>
-                              </div>
-                            </div>
-                            <Badge className="bg-emerald-100 text-emerald-800">
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              ACTIVE
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid md:grid-cols-2 gap-6">
-                            {/* Student Info */}
-                            <div>
-                              <h4 className="font-semibold text-indigo-950 mb-3">Student Details</h4>
-                              <div className="space-y-2">
-                                <div className="flex justify-between">
-                                  <span className="text-sm text-gray-600">Email:</span>
-                                  <span className="text-sm font-medium">{student.email}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-sm text-gray-600">Phone:</span>
-                                  <span className="text-sm font-medium">{student.phone}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-sm text-gray-600">Class 10:</span>
-                                  <span className="text-sm font-medium text-marigold">{student.class_10_percentage}%</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Progress Reports */}
-                            <div>
-                              <h4 className="font-semibold text-indigo-950 mb-3">Progress Timeline</h4>
-                              <ProgressTimeline reports={progress_reports} />
-                            </div>
-                          </div>
-                        </CardContent>
-                      </AnimatedCard>
+                      <Card key={student.student_id} className="border-gray-200 overflow-hidden" data-testid={`sponsored-card-${student.student_id}`}>
+                        {/* Student Profile Header */}
+                        <StudentProfileCard student={student} />
+                        
+                        {/* Progress Timeline */}
+                        <div className="p-6 bg-gray-50 border-t">
+                          <h4 className="font-semibold text-indigo-950 mb-4 flex items-center gap-2">
+                            <TrendingUp className="h-5 w-5 text-indigo-600" />
+                            Progress Timeline
+                          </h4>
+                          <EnhancedProgressTimeline reports={progress_reports} student={student} />
+                        </div>
+                      </Card>
                     ))}
                   </div>
                 )}
