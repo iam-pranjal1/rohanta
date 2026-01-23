@@ -421,6 +421,16 @@ const CompanyDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Advanced Search Tab */}
+          <TabsContent value="search">
+            <AdvancedStudentSearch onSelectStudent={(student) => setSelectedStudent(student)} />
+          </TabsContent>
+
+          {/* Sponsorship Packages Tab */}
+          <TabsContent value="packages">
+            <SponsorshipPackages />
+          </TabsContent>
+
           {/* Sponsored Students Tab */}
           <TabsContent value="sponsored">
             <Card className="border-amber-100">
