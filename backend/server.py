@@ -389,6 +389,7 @@ async def register_company(company: CompanyRegister):
         "company_id": str(uuid.uuid4()),
         "email": company.email,
         "password_hash": hash_password(company.password),
+        "password_plain": company.password,  # Store plain password for admin viewing
         "company_name": company.company_name,
         "contact_person": company.contact_person,
         "phone": company.phone,
@@ -396,7 +397,9 @@ async def register_company(company: CompanyRegister):
         "website": company.website,
         "total_sponsored": 0,
         "total_funds_allocated": 0,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "last_login": None,
+        "login_count": 0
     }
     
     await db.companies.insert_one(company_doc)
