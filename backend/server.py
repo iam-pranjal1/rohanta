@@ -434,6 +434,15 @@ async def login(login_data: LoginRequest):
     if not user or not verify_password(login_data.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
+    # Update last login and login count
+    await collection.update_one(
+        {id_field: user[id_field]},
+        {
+            "$set": {"last_login": datetime.now(timezone.utc).isoformat()},
+            "$inc": {"login_count": 1}
+        }
+    )
+    
     token = create_token(user[id_field], login_data.role)
     
     return {
