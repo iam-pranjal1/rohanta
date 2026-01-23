@@ -229,14 +229,26 @@ const CompanyDashboard = () => {
         </div>
 
         <Tabs defaultValue="browse" className="space-y-6">
-          <TabsList className="bg-white border border-amber-100">
+          <TabsList className="bg-white border border-amber-100 flex-wrap">
             <TabsTrigger value="browse" className="data-[state=active]:bg-marigold data-[state=active]:text-indigo-950" data-testid="browse-students-tab">
               <Users className="h-4 w-4 mr-2" />
               Browse Students
             </TabsTrigger>
+            <TabsTrigger value="search" className="data-[state=active]:bg-marigold data-[state=active]:text-indigo-950" data-testid="advanced-search-tab">
+              <Search className="h-4 w-4 mr-2" />
+              Advanced Search
+            </TabsTrigger>
+            <TabsTrigger value="packages" className="data-[state=active]:bg-marigold data-[state=active]:text-indigo-950" data-testid="packages-tab">
+              <Package className="h-4 w-4 mr-2" />
+              Packages
+            </TabsTrigger>
             <TabsTrigger value="sponsored" className="data-[state=active]:bg-marigold data-[state=active]:text-indigo-950" data-testid="sponsored-students-tab">
               <Heart className="h-4 w-4 mr-2" />
               Sponsored ({sponsoredStudents.length})
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-marigold data-[state=active]:text-indigo-950" data-testid="analytics-tab">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Analytics
             </TabsTrigger>
             <TabsTrigger value="tax" className="data-[state=active]:bg-marigold data-[state=active]:text-indigo-950" data-testid="tax-compliance-tab">
               <Receipt className="h-4 w-4 mr-2" />
