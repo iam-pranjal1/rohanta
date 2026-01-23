@@ -1649,7 +1649,7 @@ class CredentialAuditLog(BaseModel):
 
 @api_router.get("/admin/credentials/students")
 async def get_student_credentials(
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(verify_token),
     search: str = "",
     status: str = "",
     page: int = 1,
@@ -1694,7 +1694,7 @@ async def get_student_credentials(
 
 @api_router.get("/admin/credentials/companies")
 async def get_company_credentials(
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(verify_token),
     search: str = "",
     page: int = 1,
     limit: int = 20
@@ -1738,7 +1738,7 @@ async def get_company_credentials(
 @api_router.get("/admin/credentials/student/{student_id}")
 async def get_student_credential_detail(
     student_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(verify_token)
 ):
     if current_user['role'] != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -1766,7 +1766,7 @@ async def get_student_credential_detail(
 @api_router.get("/admin/credentials/company/{company_id}")
 async def get_company_credential_detail(
     company_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(verify_token)
 ):
     if current_user['role'] != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -1798,7 +1798,7 @@ class ResetPasswordAdmin(BaseModel):
 async def reset_student_password_admin(
     student_id: str,
     data: ResetPasswordAdmin,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(verify_token)
 ):
     if current_user['role'] != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -1834,7 +1834,7 @@ async def reset_student_password_admin(
 async def reset_company_password_admin(
     company_id: str,
     data: ResetPasswordAdmin,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(verify_token)
 ):
     if current_user['role'] != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -1874,7 +1874,7 @@ class LockAccountRequest(BaseModel):
 async def lock_student_account(
     student_id: str,
     data: LockAccountRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(verify_token)
 ):
     if current_user['role'] != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -1904,7 +1904,7 @@ async def lock_student_account(
 async def lock_company_account(
     company_id: str,
     data: LockAccountRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(verify_token)
 ):
     if current_user['role'] != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -1932,7 +1932,7 @@ async def lock_company_account(
 
 @api_router.get("/admin/credentials/audit-log")
 async def get_credential_audit_log(
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(verify_token),
     page: int = 1,
     limit: int = 50
 ):
@@ -1961,7 +1961,7 @@ class SendCredentialsEmail(BaseModel):
 async def send_student_credentials_email(
     student_id: str,
     data: SendCredentialsEmail,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(verify_token)
 ):
     if current_user['role'] != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -2036,7 +2036,7 @@ async def send_student_credentials_email(
 async def send_company_credentials_email(
     company_id: str,
     data: SendCredentialsEmail,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(verify_token)
 ):
     if current_user['role'] != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin access required")
