@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   ShieldCheck, Users, TrendingUp, LogOut, CheckCircle, XCircle, FileText, 
   Award, Clock, Heart, Settings, Upload, Search, Filter, ChevronDown,
-  Target, BookOpen, Calendar, Building2, Trophy, Briefcase
+  Target, BookOpen, Calendar, Building2, Trophy, Briefcase, Shield
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
