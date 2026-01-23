@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Building2, Users, LogOut, Heart, TrendingUp, FileText, CheckCircle, 
   Star, Info, Filter, Target, BookOpen, DollarSign, Award,
-  ChevronDown, ChevronUp, Receipt
+  ChevronDown, ChevronUp, Receipt, Package, Search, BarChart3
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -20,6 +20,11 @@ import Pagination from '../components/Pagination';
 import EnhancedProgressTimeline from '../components/EnhancedProgressTimeline';
 import StudentProfileCard from '../components/StudentProfileCard';
 import TaxCompliance from '../components/TaxCompliance';
+import NotificationBell from '../components/NotificationBell';
+import MessagingCenter from '../components/MessagingCenter';
+import AdvancedStudentSearch from '../components/AdvancedStudentSearch';
+import SponsorshipPackages from '../components/SponsorshipPackages';
+import AnalyticsDashboard from '../components/AnalyticsDashboard';
 
 const CompanyDashboard = () => {
   const [students, setStudents] = useState([]);
