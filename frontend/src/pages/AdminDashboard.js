@@ -382,6 +382,10 @@ const AdminDashboard = () => {
               <Briefcase className="h-4 w-4 mr-2" />
               CSR Partners
             </TabsTrigger>
+            <TabsTrigger value="credentials" className="data-[state=active]:bg-indigo-950 data-[state=active]:text-white" data-testid="credentials-tab">
+              <Shield className="h-4 w-4 mr-2" />
+              User Credentials
+            </TabsTrigger>
           </TabsList>
 
           {/* Verify Students Tab */}
