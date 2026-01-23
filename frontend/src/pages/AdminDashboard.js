@@ -831,6 +831,11 @@ const AdminDashboard = () => {
           <TabsContent value="csr-partners">
             <CSRPartners />
           </TabsContent>
+
+          {/* User Credentials Tab */}
+          <TabsContent value="credentials">
+            <UserCredentials />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
