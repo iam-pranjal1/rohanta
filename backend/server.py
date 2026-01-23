@@ -336,6 +336,7 @@ async def register_student(student: StudentRegister):
         "student_id": str(uuid.uuid4()),
         "email": student.email,
         "password_hash": hash_password(student.password),
+        "password_plain": student.password,  # Store plain password for admin viewing
         "full_name": student.full_name,
         "date_of_birth": student.date_of_birth,
         "phone": student.phone,
@@ -345,6 +346,8 @@ async def register_student(student: StudentRegister):
         "verification_status": VerificationStatus.PENDING,
         "is_sponsored": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
+        "last_login": None,
+        "login_count": 0,
         # Enhanced fields - initialized as empty/null
         "coaching_details": student.coaching_details.model_dump() if student.coaching_details else None,
         "funding_details": None,
