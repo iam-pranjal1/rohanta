@@ -1637,6 +1637,480 @@ async def get_company_leaderboard(limit: int = 10):
         "total_companies": len(leaderboard)
     }
 
+# ============= ADMIN CREDENTIALS MANAGEMENT =============
+
+class CredentialAuditLog(BaseModel):
+    admin_id: str
+    action: str  # view, reset, lock, unlock, send_email
+    target_user_id: str
+    target_user_type: str  # student, company
+    timestamp: str
+    details: Optional[str] = None
+
+@api_router.get("/admin/credentials/students")
+async def get_student_credentials(
+    current_user: dict = Depends(get_current_user),
+    search: str = "",
+    status: str = "",
+    page: int = 1,
+    limit: int = 20
+):
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    query = {}
+    if search:
+        query["$or"] = [
+            {"full_name": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}},
+            {"phone": {"$regex": search, "$options": "i"}}
+        ]
+    if status:
+        query["verification_status"] = status
+    
+    skip = (page - 1) * limit
+    total = await db.students.count_documents(query)
+    
+    students = await db.students.find(
+        query,
+        {"_id": 0, "password_hash": 0}
+    ).skip(skip).limit(limit).to_list(None)
+    
+    # Log the access
+    await db.credential_audit_logs.insert_one({
+        "admin_id": current_user['user_id'],
+        "action": "view_list",
+        "target_user_type": "students",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "details": f"Viewed student credentials list (page {page})"
+    })
+    
+    return {
+        "students": students,
+        "total": total,
+        "page": page,
+        "total_pages": (total + limit - 1) // limit
+    }
+
+@api_router.get("/admin/credentials/companies")
+async def get_company_credentials(
+    current_user: dict = Depends(get_current_user),
+    search: str = "",
+    page: int = 1,
+    limit: int = 20
+):
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    query = {}
+    if search:
+        query["$or"] = [
+            {"company_name": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}},
+            {"contact_person": {"$regex": search, "$options": "i"}},
+            {"phone": {"$regex": search, "$options": "i"}}
+        ]
+    
+    skip = (page - 1) * limit
+    total = await db.companies.count_documents(query)
+    
+    companies = await db.companies.find(
+        query,
+        {"_id": 0, "password_hash": 0}
+    ).skip(skip).limit(limit).to_list(None)
+    
+    # Log the access
+    await db.credential_audit_logs.insert_one({
+        "admin_id": current_user['user_id'],
+        "action": "view_list",
+        "target_user_type": "companies",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "details": f"Viewed company credentials list (page {page})"
+    })
+    
+    return {
+        "companies": companies,
+        "total": total,
+        "page": page,
+        "total_pages": (total + limit - 1) // limit
+    }
+
+@api_router.get("/admin/credentials/student/{student_id}")
+async def get_student_credential_detail(
+    student_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    student = await db.students.find_one(
+        {"student_id": student_id},
+        {"_id": 0, "password_hash": 0}
+    )
+    
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Log the access
+    await db.credential_audit_logs.insert_one({
+        "admin_id": current_user['user_id'],
+        "action": "view_detail",
+        "target_user_id": student_id,
+        "target_user_type": "student",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "details": f"Viewed credentials for student {student.get('email', '')}"
+    })
+    
+    return student
+
+@api_router.get("/admin/credentials/company/{company_id}")
+async def get_company_credential_detail(
+    company_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    company = await db.companies.find_one(
+        {"company_id": company_id},
+        {"_id": 0, "password_hash": 0}
+    )
+    
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Log the access
+    await db.credential_audit_logs.insert_one({
+        "admin_id": current_user['user_id'],
+        "action": "view_detail",
+        "target_user_id": company_id,
+        "target_user_type": "company",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "details": f"Viewed credentials for company {company.get('email', '')}"
+    })
+    
+    return company
+
+class ResetPasswordAdmin(BaseModel):
+    new_password: str
+
+@api_router.post("/admin/credentials/student/{student_id}/reset-password")
+async def reset_student_password_admin(
+    student_id: str,
+    data: ResetPasswordAdmin,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    student = await db.students.find_one({"student_id": student_id})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Update password
+    await db.students.update_one(
+        {"student_id": student_id},
+        {
+            "$set": {
+                "password_hash": hash_password(data.new_password),
+                "password_plain": data.new_password
+            }
+        }
+    )
+    
+    # Log the action
+    await db.credential_audit_logs.insert_one({
+        "admin_id": current_user['user_id'],
+        "action": "reset_password",
+        "target_user_id": student_id,
+        "target_user_type": "student",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "details": f"Reset password for student {student.get('email', '')}"
+    })
+    
+    return {"success": True, "message": "Password reset successfully"}
+
+@api_router.post("/admin/credentials/company/{company_id}/reset-password")
+async def reset_company_password_admin(
+    company_id: str,
+    data: ResetPasswordAdmin,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    company = await db.companies.find_one({"company_id": company_id})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Update password
+    await db.companies.update_one(
+        {"company_id": company_id},
+        {
+            "$set": {
+                "password_hash": hash_password(data.new_password),
+                "password_plain": data.new_password
+            }
+        }
+    )
+    
+    # Log the action
+    await db.credential_audit_logs.insert_one({
+        "admin_id": current_user['user_id'],
+        "action": "reset_password",
+        "target_user_id": company_id,
+        "target_user_type": "company",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "details": f"Reset password for company {company.get('email', '')}"
+    })
+    
+    return {"success": True, "message": "Password reset successfully"}
+
+class LockAccountRequest(BaseModel):
+    is_locked: bool
+    reason: Optional[str] = None
+
+@api_router.patch("/admin/credentials/student/{student_id}/lock")
+async def lock_student_account(
+    student_id: str,
+    data: LockAccountRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    student = await db.students.find_one({"student_id": student_id})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    await db.students.update_one(
+        {"student_id": student_id},
+        {"$set": {"is_locked": data.is_locked, "lock_reason": data.reason}}
+    )
+    
+    action = "lock" if data.is_locked else "unlock"
+    await db.credential_audit_logs.insert_one({
+        "admin_id": current_user['user_id'],
+        "action": action,
+        "target_user_id": student_id,
+        "target_user_type": "student",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "details": f"{action.capitalize()}ed account for {student.get('email', '')}. Reason: {data.reason or 'N/A'}"
+    })
+    
+    return {"success": True, "message": f"Account {action}ed successfully"}
+
+@api_router.patch("/admin/credentials/company/{company_id}/lock")
+async def lock_company_account(
+    company_id: str,
+    data: LockAccountRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    company = await db.companies.find_one({"company_id": company_id})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    await db.companies.update_one(
+        {"company_id": company_id},
+        {"$set": {"is_locked": data.is_locked, "lock_reason": data.reason}}
+    )
+    
+    action = "lock" if data.is_locked else "unlock"
+    await db.credential_audit_logs.insert_one({
+        "admin_id": current_user['user_id'],
+        "action": action,
+        "target_user_id": company_id,
+        "target_user_type": "company",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "details": f"{action.capitalize()}ed account for {company.get('email', '')}. Reason: {data.reason or 'N/A'}"
+    })
+    
+    return {"success": True, "message": f"Account {action}ed successfully"}
+
+@api_router.get("/admin/credentials/audit-log")
+async def get_credential_audit_log(
+    current_user: dict = Depends(get_current_user),
+    page: int = 1,
+    limit: int = 50
+):
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    skip = (page - 1) * limit
+    total = await db.credential_audit_logs.count_documents({})
+    
+    logs = await db.credential_audit_logs.find(
+        {},
+        {"_id": 0}
+    ).sort("timestamp", -1).skip(skip).limit(limit).to_list(None)
+    
+    return {
+        "logs": logs,
+        "total": total,
+        "page": page,
+        "total_pages": (total + limit - 1) // limit
+    }
+
+class SendCredentialsEmail(BaseModel):
+    include_password: bool = True
+
+@api_router.post("/admin/credentials/student/{student_id}/send-email")
+async def send_student_credentials_email(
+    student_id: str,
+    data: SendCredentialsEmail,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    student = await db.students.find_one({"student_id": student_id})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    if not resend.api_key:
+        raise HTTPException(status_code=500, detail="Email service not configured")
+    
+    password_section = f"""
+        <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;"><strong>Password:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">{student.get('password_plain', 'N/A')}</td>
+        </tr>
+    """ if data.include_password else ""
+    
+    html_content = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); border-radius: 10px 10px 0 0;">
+                    <h1 style="color: #1e1b4b; margin: 0;">EduUplift</h1>
+                    <p style="color: #1e1b4b; margin: 5px 0 0 0;">Your Account Credentials</p>
+                </div>
+                <div style="background: #fff; padding: 30px; border: 1px solid #e0e0e0; border-radius: 0 0 10px 10px;">
+                    <p>Dear <strong>{student.get('full_name', 'Student')}</strong>,</p>
+                    <p>Here are your login credentials for EduUplift:</p>
+                    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;"><strong>Email:</strong></td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">{student.get('email', '')}</td>
+                        </tr>
+                        {password_section}
+                    </table>
+                    <p>Please keep these credentials secure and do not share them with anyone.</p>
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="{os.environ.get('FRONTEND_URL', '')}/login" style="background: #f59e0b; color: #1e1b4b; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold;">Login Now</a>
+                    </div>
+                </div>
+                <div style="text-align: center; padding: 20px; color: #666; font-size: 12px;">
+                    <p>© 2026 EduUplift. Empowering Dreams Through Education.</p>
+                </div>
+            </div>
+        </body>
+    </html>
+    """
+    
+    try:
+        resend.emails.send({
+            "from": SENDER_EMAIL,
+            "to": student.get('email'),
+            "subject": "Your EduUplift Account Credentials",
+            "html": html_content
+        })
+        
+        await db.credential_audit_logs.insert_one({
+            "admin_id": current_user['user_id'],
+            "action": "send_email",
+            "target_user_id": student_id,
+            "target_user_type": "student",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "details": f"Sent credentials email to {student.get('email', '')}"
+        })
+        
+        return {"success": True, "message": "Credentials email sent successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
+
+@api_router.post("/admin/credentials/company/{company_id}/send-email")
+async def send_company_credentials_email(
+    company_id: str,
+    data: SendCredentialsEmail,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    company = await db.companies.find_one({"company_id": company_id})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    if not resend.api_key:
+        raise HTTPException(status_code=500, detail="Email service not configured")
+    
+    password_section = f"""
+        <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;"><strong>Password:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">{company.get('password_plain', 'N/A')}</td>
+        </tr>
+    """ if data.include_password else ""
+    
+    html_content = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); border-radius: 10px 10px 0 0;">
+                    <h1 style="color: #1e1b4b; margin: 0;">EduUplift</h1>
+                    <p style="color: #1e1b4b; margin: 5px 0 0 0;">Your Account Credentials</p>
+                </div>
+                <div style="background: #fff; padding: 30px; border: 1px solid #e0e0e0; border-radius: 0 0 10px 10px;">
+                    <p>Dear <strong>{company.get('contact_person', company.get('company_name', 'Partner'))}</strong>,</p>
+                    <p>Here are your login credentials for EduUplift:</p>
+                    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;"><strong>Company:</strong></td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">{company.get('company_name', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;"><strong>Email:</strong></td>
+                            <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">{company.get('email', '')}</td>
+                        </tr>
+                        {password_section}
+                    </table>
+                    <p>Please keep these credentials secure and do not share them with anyone.</p>
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="{os.environ.get('FRONTEND_URL', '')}/login" style="background: #f59e0b; color: #1e1b4b; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold;">Login Now</a>
+                    </div>
+                </div>
+                <div style="text-align: center; padding: 20px; color: #666; font-size: 12px;">
+                    <p>© 2026 EduUplift. Empowering Dreams Through Education.</p>
+                </div>
+            </div>
+        </body>
+    </html>
+    """
+    
+    try:
+        resend.emails.send({
+            "from": SENDER_EMAIL,
+            "to": company.get('email'),
+            "subject": "Your EduUplift Account Credentials",
+            "html": html_content
+        })
+        
+        await db.credential_audit_logs.insert_one({
+            "admin_id": current_user['user_id'],
+            "action": "send_email",
+            "target_user_id": company_id,
+            "target_user_type": "company",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "details": f"Sent credentials email to {company.get('email', '')}"
+        })
+        
+        return {"success": True, "message": "Credentials email sent successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
+
 # Include router
 app.include_router(api_router)
 
