@@ -482,6 +482,11 @@ const CompanyDashboard = () => {
           </TabsContent>
 
           {/* Tax & Compliance Tab */}
+          {/* Analytics Tab */}
+          <TabsContent value="analytics">
+            <AnalyticsDashboard userRole="company" />
+          </TabsContent>
+
           <TabsContent value="tax">
             <TaxCompliance />
           </TabsContent>
