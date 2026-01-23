@@ -1666,8 +1666,18 @@ async def create_admin_user():
             "admin_id": str(uuid.uuid4()),
             "email": "admin@csredu.com",
             "password_hash": hash_password("Admin@123"),
+            "password_plain": "Admin@123",
             "name": "System Admin",
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "last_login": None,
+            "login_count": 0
         }
         await db.admins.insert_one(admin_doc)
         logger.info("Default admin created: admin@csredu.com / Admin@123")
+    else:
+        # Update existing admin to have plain password if missing
+        if "password_plain" not in admin:
+            await db.admins.update_one(
+                {"email": "admin@csredu.com"},
+                {"$set": {"password_plain": "Admin@123"}}
+            )
