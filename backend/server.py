@@ -299,6 +299,111 @@ class CSRPartnership(BaseModel):
     admin_fee_percent: float = 10.0
     partnership_tier: str = "Standard"  # Premium, Gold, Silver, Standard
 
+# ============= NEW MODELS FOR NOTIFICATIONS, MESSAGING & SPONSORSHIP PACKAGES =============
+
+# Notification Types
+class NotificationType(str, Enum):
+    VERIFICATION = "verification"
+    SPONSORSHIP = "sponsorship"
+    DOCUMENT = "document"
+    PROGRESS = "progress"
+    MESSAGE = "message"
+    SYSTEM = "system"
+    PAYMENT = "payment"
+
+# Notification Model
+class NotificationCreate(BaseModel):
+    user_id: str
+    user_type: str  # student, company, admin
+    notification_type: NotificationType
+    title: str
+    message: str
+    action_url: Optional[str] = None
+    action_text: Optional[str] = None
+    priority: str = "normal"  # low, normal, high, urgent
+
+# Message Model
+class MessageCreate(BaseModel):
+    recipient_id: str
+    recipient_type: str  # student, company, admin
+    subject: str
+    body: str
+    attachments: Optional[List[str]] = None
+
+class MessageReply(BaseModel):
+    message_id: str
+    body: str
+    attachments: Optional[List[str]] = None
+
+# Sponsorship Package Model
+class SponsorshipPackageCreate(BaseModel):
+    package_name: str
+    total_amount: float
+    disbursement_type: str  # monthly, quarterly, annual
+    payment_to: List[str]  # student, institute
+    benefits: Dict[str, float]  # {"tuition": 80000, "coaching": 50000, etc.}
+    eligibility: Dict[str, Any]  # {"min_score": 85, "target_exam": ["JEE"], "max_income": 300000}
+    number_of_slots: int
+    start_date: str
+    end_date: str
+    is_renewable: bool = True
+    requirements: Dict[str, bool]  # {"monthly_progress": True, "quarterly_review": True}
+    description: Optional[str] = None
+
+# Sponsorship Agreement Model
+class AgreementCreate(BaseModel):
+    student_id: str
+    package_id: str
+    custom_terms: Optional[str] = None
+
+class AgreementSign(BaseModel):
+    agreement_id: str
+    signature_data: str  # Base64 encoded signature or acceptance
+
+# Advanced Search Filters
+class StudentSearchFilters(BaseModel):
+    min_score: Optional[float] = None
+    max_score: Optional[float] = None
+    target_exams: Optional[List[str]] = None
+    states: Optional[List[str]] = None
+    cities: Optional[List[str]] = None
+    school_types: Optional[List[str]] = None
+    min_income: Optional[float] = None
+    max_income: Optional[float] = None
+    gender: Optional[str] = None
+    min_age: Optional[int] = None
+    max_age: Optional[int] = None
+    only_available: bool = True
+
+class CompanySearchFilters(BaseModel):
+    industries: Optional[List[str]] = None
+    sponsorship_types: Optional[List[str]] = None
+    min_amount: Optional[float] = None
+    max_amount: Optional[float] = None
+    company_sizes: Optional[List[str]] = None
+    locations: Optional[List[str]] = None
+
+# Progress Report Submission Model
+class StudentProgressSubmission(BaseModel):
+    month: str  # "January 2026"
+    subjects: Dict[str, Dict[str, Any]]  # {"physics": {"score": 88, "attendance": 95, "rank": 12}}
+    mock_test_score: Optional[float] = None
+    mock_test_total: Optional[float] = None
+    total_classes: int
+    attended_classes: int
+    tests_attended: int
+    total_tests: int
+    reflection: Optional[str] = None
+    attachments: Optional[List[str]] = None
+
+# Mentor Feedback Model
+class MentorFeedback(BaseModel):
+    student_id: str
+    report_id: str
+    feedback: str
+    rating: int  # 1-5
+    recommendations: Optional[str] = None
+
 # Helper Functions
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
