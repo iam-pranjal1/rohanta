@@ -1742,6 +1742,920 @@ async def get_company_leaderboard(limit: int = 10):
         "total_companies": len(leaderboard)
     }
 
+# ============= NOTIFICATION SYSTEM =============
+
+@api_router.post("/notifications")
+async def create_notification(notification: NotificationCreate, current_user: dict = Depends(verify_token)):
+    """Create a notification (admin only or system)"""
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    notification_doc = {
+        "notification_id": str(uuid.uuid4()),
+        "user_id": notification.user_id,
+        "user_type": notification.user_type,
+        "notification_type": notification.notification_type,
+        "title": notification.title,
+        "message": notification.message,
+        "action_url": notification.action_url,
+        "action_text": notification.action_text,
+        "priority": notification.priority,
+        "is_read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.notifications.insert_one(notification_doc)
+    return {"success": True, "notification_id": notification_doc["notification_id"]}
+
+@api_router.get("/notifications")
+async def get_notifications(current_user: dict = Depends(verify_token), unread_only: bool = False, limit: int = 50):
+    """Get notifications for current user"""
+    query = {"user_id": current_user['user_id']}
+    if unread_only:
+        query["is_read"] = False
+    
+    notifications = await db.notifications.find(
+        query, {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(None)
+    
+    unread_count = await db.notifications.count_documents({"user_id": current_user['user_id'], "is_read": False})
+    
+    return {
+        "notifications": notifications,
+        "unread_count": unread_count
+    }
+
+@api_router.put("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, current_user: dict = Depends(verify_token)):
+    """Mark a notification as read"""
+    result = await db.notifications.update_one(
+        {"notification_id": notification_id, "user_id": current_user['user_id']},
+        {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    
+    return {"success": True}
+
+@api_router.put("/notifications/mark-all-read")
+async def mark_all_notifications_read(current_user: dict = Depends(verify_token)):
+    """Mark all notifications as read"""
+    await db.notifications.update_many(
+        {"user_id": current_user['user_id'], "is_read": False},
+        {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"success": True}
+
+@api_router.delete("/notifications/{notification_id}")
+async def delete_notification(notification_id: str, current_user: dict = Depends(verify_token)):
+    """Delete a notification"""
+    result = await db.notifications.delete_one(
+        {"notification_id": notification_id, "user_id": current_user['user_id']}
+    )
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    
+    return {"success": True}
+
+# Helper function to create system notifications
+async def create_system_notification(user_id: str, user_type: str, notification_type: str, title: str, message: str, action_url: str = None, action_text: str = None, priority: str = "normal"):
+    notification_doc = {
+        "notification_id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "user_type": user_type,
+        "notification_type": notification_type,
+        "title": title,
+        "message": message,
+        "action_url": action_url,
+        "action_text": action_text,
+        "priority": priority,
+        "is_read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.notifications.insert_one(notification_doc)
+
+# ============= MESSAGING SYSTEM =============
+
+@api_router.post("/messages")
+async def send_message(message: MessageCreate, current_user: dict = Depends(verify_token)):
+    """Send a message to another user"""
+    message_doc = {
+        "message_id": str(uuid.uuid4()),
+        "thread_id": str(uuid.uuid4()),  # New thread
+        "sender_id": current_user['user_id'],
+        "sender_type": current_user['role'],
+        "recipient_id": message.recipient_id,
+        "recipient_type": message.recipient_type,
+        "subject": message.subject,
+        "body": message.body,
+        "attachments": message.attachments or [],
+        "is_read": False,
+        "is_archived_sender": False,
+        "is_archived_recipient": False,
+        "is_starred_sender": False,
+        "is_starred_recipient": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.messages.insert_one(message_doc)
+    
+    # Create notification for recipient
+    await create_system_notification(
+        user_id=message.recipient_id,
+        user_type=message.recipient_type,
+        notification_type="message",
+        title="New Message",
+        message=f"You have a new message: {message.subject}",
+        action_url="/messages",
+        action_text="View Message"
+    )
+    
+    return {"success": True, "message_id": message_doc["message_id"]}
+
+@api_router.post("/messages/{message_id}/reply")
+async def reply_to_message(message_id: str, reply: MessageReply, current_user: dict = Depends(verify_token)):
+    """Reply to a message"""
+    original = await db.messages.find_one({"message_id": message_id})
+    if not original:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    # Determine recipient (opposite of sender)
+    if original['sender_id'] == current_user['user_id']:
+        recipient_id = original['recipient_id']
+        recipient_type = original['recipient_type']
+    else:
+        recipient_id = original['sender_id']
+        recipient_type = original['sender_type']
+    
+    reply_doc = {
+        "message_id": str(uuid.uuid4()),
+        "thread_id": original['thread_id'],
+        "parent_message_id": message_id,
+        "sender_id": current_user['user_id'],
+        "sender_type": current_user['role'],
+        "recipient_id": recipient_id,
+        "recipient_type": recipient_type,
+        "subject": f"Re: {original['subject']}",
+        "body": reply.body,
+        "attachments": reply.attachments or [],
+        "is_read": False,
+        "is_archived_sender": False,
+        "is_archived_recipient": False,
+        "is_starred_sender": False,
+        "is_starred_recipient": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.messages.insert_one(reply_doc)
+    
+    # Notify recipient
+    await create_system_notification(
+        user_id=recipient_id,
+        user_type=recipient_type,
+        notification_type="message",
+        title="New Reply",
+        message=f"You have a reply to: {original['subject']}",
+        action_url="/messages",
+        action_text="View Message"
+    )
+    
+    return {"success": True, "message_id": reply_doc["message_id"]}
+
+@api_router.get("/messages/inbox")
+async def get_inbox(current_user: dict = Depends(verify_token), page: int = 1, limit: int = 20):
+    """Get inbox messages"""
+    skip = (page - 1) * limit
+    query = {"recipient_id": current_user['user_id'], "is_archived_recipient": False}
+    
+    total = await db.messages.count_documents(query)
+    messages = await db.messages.find(
+        query, {"_id": 0}
+    ).sort("created_at", -1).skip(skip).limit(limit).to_list(None)
+    
+    # Enrich with sender info
+    for msg in messages:
+        if msg['sender_type'] == 'student':
+            sender = await db.students.find_one({"student_id": msg['sender_id']}, {"full_name": 1, "_id": 0})
+            msg['sender_name'] = sender.get('full_name', 'Unknown') if sender else 'Unknown'
+        elif msg['sender_type'] == 'company':
+            sender = await db.companies.find_one({"company_id": msg['sender_id']}, {"company_name": 1, "_id": 0})
+            msg['sender_name'] = sender.get('company_name', 'Unknown') if sender else 'Unknown'
+        else:
+            msg['sender_name'] = 'Admin'
+    
+    unread_count = await db.messages.count_documents({"recipient_id": current_user['user_id'], "is_read": False})
+    
+    return {
+        "messages": messages,
+        "total": total,
+        "page": page,
+        "total_pages": (total + limit - 1) // limit,
+        "unread_count": unread_count
+    }
+
+@api_router.get("/messages/sent")
+async def get_sent_messages(current_user: dict = Depends(verify_token), page: int = 1, limit: int = 20):
+    """Get sent messages"""
+    skip = (page - 1) * limit
+    query = {"sender_id": current_user['user_id'], "is_archived_sender": False}
+    
+    total = await db.messages.count_documents(query)
+    messages = await db.messages.find(
+        query, {"_id": 0}
+    ).sort("created_at", -1).skip(skip).limit(limit).to_list(None)
+    
+    # Enrich with recipient info
+    for msg in messages:
+        if msg['recipient_type'] == 'student':
+            recipient = await db.students.find_one({"student_id": msg['recipient_id']}, {"full_name": 1, "_id": 0})
+            msg['recipient_name'] = recipient.get('full_name', 'Unknown') if recipient else 'Unknown'
+        elif msg['recipient_type'] == 'company':
+            recipient = await db.companies.find_one({"company_id": msg['recipient_id']}, {"company_name": 1, "_id": 0})
+            msg['recipient_name'] = recipient.get('company_name', 'Unknown') if recipient else 'Unknown'
+        else:
+            msg['recipient_name'] = 'Admin'
+    
+    return {
+        "messages": messages,
+        "total": total,
+        "page": page,
+        "total_pages": (total + limit - 1) // limit
+    }
+
+@api_router.get("/messages/thread/{thread_id}")
+async def get_message_thread(thread_id: str, current_user: dict = Depends(verify_token)):
+    """Get all messages in a thread"""
+    messages = await db.messages.find(
+        {"thread_id": thread_id}, {"_id": 0}
+    ).sort("created_at", 1).to_list(None)
+    
+    # Mark messages as read if recipient
+    await db.messages.update_many(
+        {"thread_id": thread_id, "recipient_id": current_user['user_id'], "is_read": False},
+        {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"messages": messages}
+
+@api_router.put("/messages/{message_id}/star")
+async def toggle_star_message(message_id: str, current_user: dict = Depends(verify_token)):
+    """Toggle star on a message"""
+    message = await db.messages.find_one({"message_id": message_id})
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    if message['sender_id'] == current_user['user_id']:
+        field = "is_starred_sender"
+    else:
+        field = "is_starred_recipient"
+    
+    new_value = not message.get(field, False)
+    await db.messages.update_one(
+        {"message_id": message_id},
+        {"$set": {field: new_value}}
+    )
+    
+    return {"success": True, "starred": new_value}
+
+@api_router.put("/messages/{message_id}/archive")
+async def archive_message(message_id: str, current_user: dict = Depends(verify_token)):
+    """Archive a message"""
+    message = await db.messages.find_one({"message_id": message_id})
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    if message['sender_id'] == current_user['user_id']:
+        field = "is_archived_sender"
+    else:
+        field = "is_archived_recipient"
+    
+    await db.messages.update_one(
+        {"message_id": message_id},
+        {"$set": {field: True}}
+    )
+    
+    return {"success": True}
+
+# ============= SPONSORSHIP PACKAGES =============
+
+@api_router.post("/company/packages")
+async def create_sponsorship_package(package: SponsorshipPackageCreate, current_user: dict = Depends(verify_token)):
+    """Create a sponsorship package (company only)"""
+    if current_user['role'] != UserRole.COMPANY:
+        raise HTTPException(status_code=403, detail="Company access required")
+    
+    package_doc = {
+        "package_id": str(uuid.uuid4()),
+        "company_id": current_user['user_id'],
+        "package_name": package.package_name,
+        "total_amount": package.total_amount,
+        "disbursement_type": package.disbursement_type,
+        "payment_to": package.payment_to,
+        "benefits": package.benefits,
+        "eligibility": package.eligibility,
+        "number_of_slots": package.number_of_slots,
+        "slots_filled": 0,
+        "start_date": package.start_date,
+        "end_date": package.end_date,
+        "is_renewable": package.is_renewable,
+        "requirements": package.requirements,
+        "description": package.description,
+        "status": "active",  # active, paused, closed
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.sponsorship_packages.insert_one(package_doc)
+    return {"success": True, "package_id": package_doc["package_id"]}
+
+@api_router.get("/company/packages")
+async def get_company_packages(current_user: dict = Depends(verify_token)):
+    """Get company's sponsorship packages"""
+    if current_user['role'] != UserRole.COMPANY:
+        raise HTTPException(status_code=403, detail="Company access required")
+    
+    packages = await db.sponsorship_packages.find(
+        {"company_id": current_user['user_id']},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(None)
+    
+    return {"packages": packages}
+
+@api_router.get("/packages/available")
+async def get_available_packages(current_user: dict = Depends(verify_token)):
+    """Get all available sponsorship packages for students"""
+    if current_user['role'] != UserRole.STUDENT:
+        raise HTTPException(status_code=403, detail="Student access required")
+    
+    # Get active packages with available slots
+    packages = await db.sponsorship_packages.find(
+        {
+            "status": "active",
+            "$expr": {"$lt": ["$slots_filled", "$number_of_slots"]}
+        },
+        {"_id": 0}
+    ).to_list(None)
+    
+    # Enrich with company info
+    for pkg in packages:
+        company = await db.companies.find_one(
+            {"company_id": pkg['company_id']},
+            {"company_name": 1, "industry": 1, "_id": 0}
+        )
+        pkg['company_name'] = company.get('company_name', 'Unknown') if company else 'Unknown'
+        pkg['company_industry'] = company.get('industry', '') if company else ''
+    
+    return {"packages": packages}
+
+@api_router.put("/company/packages/{package_id}")
+async def update_package(package_id: str, package: SponsorshipPackageCreate, current_user: dict = Depends(verify_token)):
+    """Update a sponsorship package"""
+    if current_user['role'] != UserRole.COMPANY:
+        raise HTTPException(status_code=403, detail="Company access required")
+    
+    existing = await db.sponsorship_packages.find_one(
+        {"package_id": package_id, "company_id": current_user['user_id']}
+    )
+    if not existing:
+        raise HTTPException(status_code=404, detail="Package not found")
+    
+    update_data = package.model_dump()
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.sponsorship_packages.update_one(
+        {"package_id": package_id},
+        {"$set": update_data}
+    )
+    
+    return {"success": True}
+
+@api_router.put("/company/packages/{package_id}/status")
+async def update_package_status(package_id: str, status: str, current_user: dict = Depends(verify_token)):
+    """Update package status (active/paused/closed)"""
+    if current_user['role'] != UserRole.COMPANY:
+        raise HTTPException(status_code=403, detail="Company access required")
+    
+    if status not in ["active", "paused", "closed"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    
+    result = await db.sponsorship_packages.update_one(
+        {"package_id": package_id, "company_id": current_user['user_id']},
+        {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Package not found")
+    
+    return {"success": True}
+
+# ============= SPONSORSHIP AGREEMENTS =============
+
+@api_router.post("/agreements")
+async def create_agreement(agreement: AgreementCreate, current_user: dict = Depends(verify_token)):
+    """Create a sponsorship agreement (company initiates)"""
+    if current_user['role'] != UserRole.COMPANY:
+        raise HTTPException(status_code=403, detail="Company access required")
+    
+    # Verify package exists and belongs to company
+    package = await db.sponsorship_packages.find_one(
+        {"package_id": agreement.package_id, "company_id": current_user['user_id']}
+    )
+    if not package:
+        raise HTTPException(status_code=404, detail="Package not found")
+    
+    # Verify student exists
+    student = await db.students.find_one({"student_id": agreement.student_id})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    agreement_doc = {
+        "agreement_id": str(uuid.uuid4()),
+        "student_id": agreement.student_id,
+        "company_id": current_user['user_id'],
+        "package_id": agreement.package_id,
+        "package_name": package['package_name'],
+        "total_amount": package['total_amount'],
+        "benefits": package['benefits'],
+        "requirements": package['requirements'],
+        "custom_terms": agreement.custom_terms,
+        "status": "pending_student",  # pending_student, pending_admin, active, declined, completed
+        "student_signed": False,
+        "student_signed_at": None,
+        "company_signed": True,
+        "company_signed_at": datetime.now(timezone.utc).isoformat(),
+        "admin_approved": False,
+        "admin_approved_at": None,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.agreements.insert_one(agreement_doc)
+    
+    # Notify student
+    await create_system_notification(
+        user_id=agreement.student_id,
+        user_type="student",
+        notification_type="sponsorship",
+        title="New Sponsorship Offer!",
+        message=f"You have received a sponsorship offer from {package.get('company_name', 'a company')}",
+        action_url="/student/agreements",
+        action_text="View Offer",
+        priority="high"
+    )
+    
+    return {"success": True, "agreement_id": agreement_doc["agreement_id"]}
+
+@api_router.get("/agreements")
+async def get_agreements(current_user: dict = Depends(verify_token)):
+    """Get agreements for current user"""
+    if current_user['role'] == UserRole.STUDENT:
+        query = {"student_id": current_user['user_id']}
+    elif current_user['role'] == UserRole.COMPANY:
+        query = {"company_id": current_user['user_id']}
+    else:
+        query = {}  # Admin sees all
+    
+    agreements = await db.agreements.find(query, {"_id": 0}).sort("created_at", -1).to_list(None)
+    
+    # Enrich with names
+    for agr in agreements:
+        student = await db.students.find_one({"student_id": agr['student_id']}, {"full_name": 1, "_id": 0})
+        company = await db.companies.find_one({"company_id": agr['company_id']}, {"company_name": 1, "_id": 0})
+        agr['student_name'] = student.get('full_name', 'Unknown') if student else 'Unknown'
+        agr['company_name'] = company.get('company_name', 'Unknown') if company else 'Unknown'
+    
+    return {"agreements": agreements}
+
+@api_router.post("/agreements/{agreement_id}/sign")
+async def sign_agreement(agreement_id: str, sign_data: AgreementSign, current_user: dict = Depends(verify_token)):
+    """Sign an agreement (student)"""
+    if current_user['role'] != UserRole.STUDENT:
+        raise HTTPException(status_code=403, detail="Student access required")
+    
+    agreement = await db.agreements.find_one(
+        {"agreement_id": agreement_id, "student_id": current_user['user_id']}
+    )
+    if not agreement:
+        raise HTTPException(status_code=404, detail="Agreement not found")
+    
+    await db.agreements.update_one(
+        {"agreement_id": agreement_id},
+        {
+            "$set": {
+                "student_signed": True,
+                "student_signed_at": datetime.now(timezone.utc).isoformat(),
+                "student_signature": sign_data.signature_data,
+                "status": "pending_admin"
+            }
+        }
+    )
+    
+    # Notify admin
+    admins = await db.admins.find({}, {"admin_id": 1, "_id": 0}).to_list(None)
+    for admin in admins:
+        await create_system_notification(
+            user_id=admin['admin_id'],
+            user_type="admin",
+            notification_type="sponsorship",
+            title="Agreement Pending Approval",
+            message="A new sponsorship agreement is awaiting your approval",
+            action_url="/admin/agreements",
+            action_text="Review"
+        )
+    
+    return {"success": True}
+
+@api_router.post("/agreements/{agreement_id}/decline")
+async def decline_agreement(agreement_id: str, current_user: dict = Depends(verify_token)):
+    """Decline an agreement (student)"""
+    if current_user['role'] != UserRole.STUDENT:
+        raise HTTPException(status_code=403, detail="Student access required")
+    
+    result = await db.agreements.update_one(
+        {"agreement_id": agreement_id, "student_id": current_user['user_id']},
+        {"$set": {"status": "declined", "declined_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Agreement not found")
+    
+    return {"success": True}
+
+@api_router.post("/admin/agreements/{agreement_id}/approve")
+async def approve_agreement(agreement_id: str, current_user: dict = Depends(verify_token)):
+    """Approve an agreement (admin only)"""
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    agreement = await db.agreements.find_one({"agreement_id": agreement_id})
+    if not agreement:
+        raise HTTPException(status_code=404, detail="Agreement not found")
+    
+    # Update agreement
+    await db.agreements.update_one(
+        {"agreement_id": agreement_id},
+        {
+            "$set": {
+                "admin_approved": True,
+                "admin_approved_at": datetime.now(timezone.utc).isoformat(),
+                "status": "active"
+            }
+        }
+    )
+    
+    # Create sponsorship record
+    sponsorship_doc = {
+        "sponsorship_id": str(uuid.uuid4()),
+        "company_id": agreement['company_id'],
+        "student_id": agreement['student_id'],
+        "agreement_id": agreement_id,
+        "package_id": agreement.get('package_id'),
+        "amount": agreement['total_amount'],
+        "status": "active",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.sponsorships.insert_one(sponsorship_doc)
+    
+    # Update student as sponsored
+    await db.students.update_one(
+        {"student_id": agreement['student_id']},
+        {"$set": {"is_sponsored": True}}
+    )
+    
+    # Update package slots
+    if agreement.get('package_id'):
+        await db.sponsorship_packages.update_one(
+            {"package_id": agreement['package_id']},
+            {"$inc": {"slots_filled": 1}}
+        )
+    
+    # Notify both parties
+    await create_system_notification(
+        user_id=agreement['student_id'],
+        user_type="student",
+        notification_type="sponsorship",
+        title="Sponsorship Approved!",
+        message="Congratulations! Your sponsorship has been approved.",
+        priority="high"
+    )
+    
+    await create_system_notification(
+        user_id=agreement['company_id'],
+        user_type="company",
+        notification_type="sponsorship",
+        title="Sponsorship Confirmed",
+        message="Your sponsorship agreement has been approved by admin.",
+        priority="normal"
+    )
+    
+    return {"success": True}
+
+# ============= ADVANCED SEARCH =============
+
+@api_router.post("/search/students")
+async def search_students_advanced(filters: StudentSearchFilters, current_user: dict = Depends(verify_token), page: int = 1, limit: int = 20):
+    """Advanced student search for companies"""
+    if current_user['role'] != UserRole.COMPANY:
+        raise HTTPException(status_code=403, detail="Company access required")
+    
+    query = {"verification_status": "verified"}
+    
+    if filters.only_available:
+        query["is_sponsored"] = False
+    
+    if filters.min_score is not None:
+        query["class_10_percentage"] = {"$gte": filters.min_score}
+    if filters.max_score is not None:
+        query.setdefault("class_10_percentage", {})["$lte"] = filters.max_score
+    
+    if filters.target_exams:
+        query["coaching_details.coaching_type"] = {"$in": filters.target_exams}
+    
+    if filters.states:
+        query["address"] = {"$regex": "|".join(filters.states), "$options": "i"}
+    
+    if filters.gender:
+        query["gender"] = filters.gender
+    
+    skip = (page - 1) * limit
+    total = await db.students.count_documents(query)
+    
+    students = await db.students.find(
+        query,
+        {"_id": 0, "password_hash": 0, "password_plain": 0}
+    ).skip(skip).limit(limit).to_list(None)
+    
+    return {
+        "students": students,
+        "total": total,
+        "page": page,
+        "total_pages": (total + limit - 1) // limit
+    }
+
+@api_router.post("/search/companies")
+async def search_companies_advanced(filters: CompanySearchFilters, current_user: dict = Depends(verify_token), page: int = 1, limit: int = 20):
+    """Advanced company search for students"""
+    if current_user['role'] != UserRole.STUDENT:
+        raise HTTPException(status_code=403, detail="Student access required")
+    
+    query = {}
+    
+    if filters.industries:
+        query["industry"] = {"$in": filters.industries}
+    
+    if filters.locations:
+        query["$or"] = [{"address": {"$regex": loc, "$options": "i"}} for loc in filters.locations]
+    
+    skip = (page - 1) * limit
+    total = await db.companies.count_documents(query)
+    
+    companies = await db.companies.find(
+        query,
+        {"_id": 0, "password_hash": 0, "password_plain": 0}
+    ).skip(skip).limit(limit).to_list(None)
+    
+    # Enrich with package info
+    for company in companies:
+        packages = await db.sponsorship_packages.find(
+            {"company_id": company['company_id'], "status": "active"},
+            {"_id": 0, "package_name": 1, "total_amount": 1}
+        ).to_list(None)
+        company['available_packages'] = packages
+    
+    return {
+        "companies": companies,
+        "total": total,
+        "page": page,
+        "total_pages": (total + limit - 1) // limit
+    }
+
+# ============= STUDENT PROGRESS SUBMISSION =============
+
+@api_router.post("/student/progress-report")
+async def submit_student_progress(report: StudentProgressSubmission, current_user: dict = Depends(verify_token)):
+    """Submit monthly progress report (student)"""
+    if current_user['role'] != UserRole.STUDENT:
+        raise HTTPException(status_code=403, detail="Student access required")
+    
+    report_doc = {
+        "report_id": str(uuid.uuid4()),
+        "student_id": current_user['user_id'],
+        "month": report.month,
+        "subjects": report.subjects,
+        "mock_test_score": report.mock_test_score,
+        "mock_test_total": report.mock_test_total,
+        "total_classes": report.total_classes,
+        "attended_classes": report.attended_classes,
+        "attendance_percentage": (report.attended_classes / report.total_classes * 100) if report.total_classes > 0 else 0,
+        "tests_attended": report.tests_attended,
+        "total_tests": report.total_tests,
+        "reflection": report.reflection,
+        "attachments": report.attachments or [],
+        "status": "submitted",  # submitted, reviewed, needs_revision
+        "mentor_feedback": None,
+        "submitted_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.student_progress_reports.insert_one(report_doc)
+    
+    # Notify sponsor company
+    sponsorship = await db.sponsorships.find_one({"student_id": current_user['user_id'], "status": "active"})
+    if sponsorship:
+        await create_system_notification(
+            user_id=sponsorship['company_id'],
+            user_type="company",
+            notification_type="progress",
+            title="New Progress Report",
+            message=f"Monthly progress report for {report.month} is available",
+            action_url="/company/progress",
+            action_text="View Report"
+        )
+    
+    return {"success": True, "report_id": report_doc["report_id"]}
+
+@api_router.get("/student/progress-reports")
+async def get_student_progress_reports(current_user: dict = Depends(verify_token)):
+    """Get student's own progress reports"""
+    if current_user['role'] != UserRole.STUDENT:
+        raise HTTPException(status_code=403, detail="Student access required")
+    
+    reports = await db.student_progress_reports.find(
+        {"student_id": current_user['user_id']},
+        {"_id": 0}
+    ).sort("submitted_at", -1).to_list(None)
+    
+    return {"reports": reports}
+
+@api_router.post("/company/mentor-feedback")
+async def add_mentor_feedback(feedback: MentorFeedback, current_user: dict = Depends(verify_token)):
+    """Add mentor feedback to a student's progress report"""
+    if current_user['role'] != UserRole.COMPANY:
+        raise HTTPException(status_code=403, detail="Company access required")
+    
+    # Verify company sponsors this student
+    sponsorship = await db.sponsorships.find_one({
+        "company_id": current_user['user_id'],
+        "student_id": feedback.student_id,
+        "status": "active"
+    })
+    if not sponsorship:
+        raise HTTPException(status_code=403, detail="You don't sponsor this student")
+    
+    await db.student_progress_reports.update_one(
+        {"report_id": feedback.report_id, "student_id": feedback.student_id},
+        {
+            "$set": {
+                "mentor_feedback": {
+                    "feedback": feedback.feedback,
+                    "rating": feedback.rating,
+                    "recommendations": feedback.recommendations,
+                    "given_by": current_user['user_id'],
+                    "given_at": datetime.now(timezone.utc).isoformat()
+                },
+                "status": "reviewed"
+            }
+        }
+    )
+    
+    # Notify student
+    await create_system_notification(
+        user_id=feedback.student_id,
+        user_type="student",
+        notification_type="progress",
+        title="Mentor Feedback Received",
+        message="Your sponsor has provided feedback on your progress report",
+        action_url="/student/progress",
+        action_text="View Feedback"
+    )
+    
+    return {"success": True}
+
+# ============= ANALYTICS DASHBOARD =============
+
+@api_router.get("/admin/analytics")
+async def get_admin_analytics(current_user: dict = Depends(verify_token)):
+    """Get platform analytics for admin"""
+    if current_user['role'] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Basic counts
+    total_students = await db.students.count_documents({})
+    verified_students = await db.students.count_documents({"verification_status": "verified"})
+    pending_students = await db.students.count_documents({"verification_status": "pending"})
+    sponsored_students = await db.students.count_documents({"is_sponsored": True})
+    total_companies = await db.companies.count_documents({})
+    
+    # Financial stats
+    sponsorships = await db.sponsorships.find({"status": "active"}).to_list(None)
+    total_funds = sum(s.get('amount', 0) for s in sponsorships)
+    
+    # Recent activity
+    recent_registrations = await db.students.count_documents({
+        "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()}
+    })
+    
+    recent_sponsorships = await db.sponsorships.count_documents({
+        "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()}
+    })
+    
+    # Success metrics
+    success_stories = await db.success_stories.count_documents({})
+    
+    # Monthly trends (last 6 months)
+    monthly_data = []
+    for i in range(5, -1, -1):
+        month_start = datetime.now(timezone.utc).replace(day=1) - timedelta(days=30*i)
+        month_end = month_start + timedelta(days=30)
+        
+        new_students = await db.students.count_documents({
+            "created_at": {"$gte": month_start.isoformat(), "$lt": month_end.isoformat()}
+        })
+        new_sponsorships = await db.sponsorships.count_documents({
+            "created_at": {"$gte": month_start.isoformat(), "$lt": month_end.isoformat()}
+        })
+        
+        monthly_data.append({
+            "month": month_start.strftime("%b %Y"),
+            "students": new_students,
+            "sponsorships": new_sponsorships
+        })
+    
+    return {
+        "overview": {
+            "total_students": total_students,
+            "verified_students": verified_students,
+            "pending_students": pending_students,
+            "sponsored_students": sponsored_students,
+            "total_companies": total_companies,
+            "total_funds": total_funds,
+            "success_stories": success_stories
+        },
+        "recent_activity": {
+            "new_registrations_7d": recent_registrations,
+            "new_sponsorships_30d": recent_sponsorships
+        },
+        "monthly_trends": monthly_data,
+        "conversion_rate": (sponsored_students / verified_students * 100) if verified_students > 0 else 0
+    }
+
+@api_router.get("/company/analytics")
+async def get_company_analytics(current_user: dict = Depends(verify_token)):
+    """Get analytics for company dashboard"""
+    if current_user['role'] != UserRole.COMPANY:
+        raise HTTPException(status_code=403, detail="Company access required")
+    
+    # Get sponsored students
+    sponsorships = await db.sponsorships.find(
+        {"company_id": current_user['user_id'], "status": "active"},
+        {"_id": 0}
+    ).to_list(None)
+    
+    total_sponsored = len(sponsorships)
+    total_invested = sum(s.get('amount', 0) for s in sponsorships)
+    
+    # Get progress data for sponsored students
+    student_progress = []
+    for sp in sponsorships:
+        student = await db.students.find_one(
+            {"student_id": sp['student_id']},
+            {"full_name": 1, "class_10_percentage": 1, "_id": 0}
+        )
+        
+        reports = await db.student_progress_reports.find(
+            {"student_id": sp['student_id']},
+            {"_id": 0}
+        ).sort("submitted_at", -1).limit(6).to_list(None)
+        
+        if student:
+            student_progress.append({
+                "student_id": sp['student_id'],
+                "name": student.get('full_name', 'Unknown'),
+                "base_score": student.get('class_10_percentage', 0),
+                "reports": reports
+            })
+    
+    # Packages stats
+    packages = await db.sponsorship_packages.find(
+        {"company_id": current_user['user_id']},
+        {"_id": 0}
+    ).to_list(None)
+    
+    active_packages = len([p for p in packages if p.get('status') == 'active'])
+    total_slots = sum(p.get('number_of_slots', 0) for p in packages)
+    filled_slots = sum(p.get('slots_filled', 0) for p in packages)
+    
+    return {
+        "overview": {
+            "total_sponsored": total_sponsored,
+            "total_invested": total_invested,
+            "active_packages": active_packages,
+            "total_slots": total_slots,
+            "filled_slots": filled_slots
+        },
+        "student_progress": student_progress,
+        "packages": packages
+    }
+
 # ============= ADMIN CREDENTIALS MANAGEMENT =============
 
 class CredentialAuditLog(BaseModel):
