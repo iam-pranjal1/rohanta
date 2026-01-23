@@ -391,6 +391,10 @@ const AdminDashboard = () => {
               <Shield className="h-4 w-4 mr-2" />
               User Credentials
             </TabsTrigger>
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-indigo-950 data-[state=active]:text-white" data-testid="admin-analytics-tab">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Analytics
+            </TabsTrigger>
           </TabsList>
 
           {/* Verify Students Tab */}
