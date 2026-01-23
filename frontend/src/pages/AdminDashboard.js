@@ -20,6 +20,7 @@ import AnimatedCard from '../components/AnimatedCard';
 import AdminStudentForms from '../components/AdminStudentForms';
 import StudentProfileCard from '../components/StudentProfileCard';
 import CSRPartners from '../components/CSRPartners';
+import UserCredentials from '../components/UserCredentials';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({});
