@@ -151,15 +151,18 @@ const StudentDashboard = () => {
               <GraduationCap className="h-8 w-8 text-marigold" />
               <span className="font-heading text-2xl font-bold text-indigo-950">EduUplift</span>
             </div>
-            <Button 
-              onClick={handleLogout}
-              variant="ghost"
-              className="text-gray-600 hover:text-indigo-950"
-              data-testid="logout-btn"
-            >
-              <LogOut className="h-5 w-5 mr-2" />
-              Logout
-            </Button>
+            <div className="flex items-center gap-4">
+              <NotificationBell />
+              <Button 
+                onClick={handleLogout}
+                variant="ghost"
+                className="text-gray-600 hover:text-indigo-950"
+                data-testid="logout-btn"
+              >
+                <LogOut className="h-5 w-5 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </div>
