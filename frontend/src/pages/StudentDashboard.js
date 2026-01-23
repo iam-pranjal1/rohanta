@@ -17,6 +17,7 @@ import Avatar from '../components/Avatar';
 import AnimatedCard from '../components/AnimatedCard';
 import EnhancedProgressTimeline from '../components/EnhancedProgressTimeline';
 import InstituteSelection from '../components/InstituteSelection';
+import NotificationBell from '../components/NotificationBell';
 
 const StudentDashboard = () => {
   const [profile, setProfile] = useState(null);
