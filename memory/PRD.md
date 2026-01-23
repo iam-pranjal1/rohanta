@@ -102,6 +102,16 @@ Build a website for raising Corporate Social Responsibility (CSR) funds in India
 - **UI Bug Fixes**
   - Fixed DOB field in student registration - now uses proper calendar date picker with month/year dropdowns
   - Fixed homepage header to show logged-in state (Dashboard & Logout buttons instead of Login & Get Started)
+- **Admin Credential Management Feature** (NEW)
+  - Added "User Credentials" tab to Admin Dashboard
+  - View student and company login credentials (email + plain text password)
+  - Search and filter by name, email, phone, status
+  - Show/hide password toggle with copy functionality
+  - Password reset with auto-generate option
+  - Send credentials email to users
+  - Lock/unlock account functionality
+  - Audit logging for all credential access
+  - Backend stores plain text passwords for new registrations
 
 ### January 22, 2026 (Session 2)
 - **Success Stories Feature**
