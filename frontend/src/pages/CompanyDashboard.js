@@ -36,6 +36,7 @@ const CompanyDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({});
   const [expandedStudents, setExpandedStudents] = useState({});
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
